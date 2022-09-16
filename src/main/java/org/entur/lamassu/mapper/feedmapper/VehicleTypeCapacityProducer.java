@@ -18,6 +18,7 @@
 
 package org.entur.lamassu.mapper.feedmapper;
 
+import org.entur.gbfs.v2_2.vehicle_types.GBFSVehicleType;
 import org.entur.gbfs.v2_3.station_status.GBFSStationStatus;
 import org.entur.gbfs.v2_3.station_status.GBFSVehicleTypesAvailable;
 import org.entur.gbfs.v2_3.vehicle_types.GBFSVehicleTypes;
@@ -28,7 +29,22 @@ public class VehicleTypeCapacityProducer {
     private VehicleTypeCapacityProducer() {}
 
     public static void addToStations(GBFSStationStatus stationStatus, GBFSVehicleTypes vehicleTypes) {
-        if (vehicleTypes.getData().getVehicleTypes().size() == 1) {
+
+
+
+        if (vehicleTypes == null){
+            GBFSVehicleType vehicleType = getDefaultvehicleType();
+            stationStatus.getData().getStations().forEach(station -> {
+                if (station.getVehicleTypesAvailable() == null || station.getVehicleTypesAvailable().isEmpty()) {
+                    station.setVehicleTypesAvailable(List.of(
+                            new GBFSVehicleTypesAvailable()
+                                    .withVehicleTypeId(vehicleType.getVehicleTypeId())
+                                    .withCount(station.getNumBikesAvailable())
+                    ));
+                }
+            });
+
+        }else if (vehicleTypes.getData().getVehicleTypes().size() == 1) {
             var vehicleType = vehicleTypes.getData().getVehicleTypes().get(0);
             stationStatus.getData().getStations().forEach(station -> {
                 if (station.getVehicleTypesAvailable() == null || station.getVehicleTypesAvailable().isEmpty()) {
@@ -40,5 +56,11 @@ public class VehicleTypeCapacityProducer {
                 }
             });
         }
+    }
+
+    private static GBFSVehicleType getDefaultvehicleType() {
+        GBFSVehicleType defaultVehicleType = new GBFSVehicleType();
+
+        return defaultVehicleType;
     }
 }
