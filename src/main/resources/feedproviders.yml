@@ -1,8 +1,0 @@
-lamassu:
-  providers:
-    - systemId: testbordeaux
-      operatorId: TST:Operator:Bordeaux
-      operatorName: Bordeaux
-      url: https://transport.data.gouv.fr/gbfs/vcub/gbfs.json
-      codespace: BOR
-      language: fr

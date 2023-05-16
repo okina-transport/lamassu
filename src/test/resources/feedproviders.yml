@@ -1,12 +1,8 @@
 lamassu:
   providers:
-    - systemId: testatlantis
-      operatorId: TST:Operator:atlantis
-      operatorName: Atlantis
-      url: http://localhost:8888/gbfs
-      codespace: TST
-      language: en
-      authentication:
-        scheme: BearerToken
-        properties:
-          accessToken: fake_token
+    - systemId: testbordeaux
+      operatorId: TST:Operator:Bordeaux
+      operatorName: Bordeaux
+      url: https://transport.data.gouv.fr/gbfs/vcub/gbfs.json
+      codespace: BOR
+      language: fr
