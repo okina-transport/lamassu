@@ -1,32 +1,8 @@
 lamassu:
   providers:
-    - systemId: Velo_libre_service_impulsyon_bird
-      operatorId: IMP:Operator:Impulsyon
-      operatorName: Impulsyon
-      url: https://mds.bird.co/gbfs/v2/public/larochesuryon/gbfs.json
-      codespace: IMP
-      language: fr
     - systemId: Velo_libre_service_irigo_pony
       operatorId: IRI:Operator:Irigo
       operatorName: Irigo
       url: https://gbfs.getapony.com/v1/angers/fr/gbfs.json
       codespace: IRI
-      language: fr
-    - systemId: Velo_libre_service_stran_velyceo
-      operatorId: STR:Operator:Stran
-      operatorName: Stran
-      url: https://api.gbfs.v1.ecovelo.mobi/gbfs/velyceo
-      codespace: STR
-      language: fr
-    - systemId: Velo_libre_service_tan_bicloo
-      operatorId: TAN:Operator:tan
-      operatorName: Tan
-      url: https://transport.data.gouv.fr/gbfs/nantes/gbfs.json
-      codespace: TAN
-      language: fr
-    - systemId: Velo_libre_service_tul_bird
-      operatorId: TUL:Operator:Tul
-      operatorName: Tul
-      url: https://mds.bird.co/gbfs/v2/public/laval/gbfs.json
-      codespace: TUL
       language: fr
