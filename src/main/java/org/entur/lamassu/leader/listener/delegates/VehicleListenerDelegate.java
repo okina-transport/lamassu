@@ -48,13 +48,13 @@ public class VehicleListenerDelegate implements CacheEntryListenerDelegate<Vehic
 
     @Override
     public void onExpired(EntryEvent<String, Vehicle> event) {
-        logger.info("Expired event {}", event);
+        logger.debug("Expired event {}", event);
         var name = event.getKey();
         var vehicle= event.getValue();
         var split = name.split("_");
         var feedProvider = feedProviderService.getFeedProviderBySystemId(split[split.length - 1]);
         if (feedProvider == null) {
-            logger.warn("Feed provider not found on expired vehicle={}. Probably means feed provider was removed.", name);
+            logger.debug("Feed provider not found on expired vehicle={}. Probably means feed provider was removed.", name);
         } else {
             var id = SpatialIndexIdUtil.createVehicleSpatialIndexId(
                     vehicle,
