@@ -7,14 +7,27 @@ import org.entur.lamassu.service.SystemDiscoveryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.stream.Collectors;
 
 @Component
 public class SystemDiscoveryServiceImpl implements SystemDiscoveryService {
-    private final SystemDiscovery systemDiscovery;
+    private SystemDiscovery systemDiscovery;
 
     @Autowired
-    public SystemDiscoveryServiceImpl(FeedProviderService feedProviderService, SystemDiscoveryMapper systemDiscoveryMapper) {
+    private FeedProviderService feedProviderService;
+
+    @Autowired
+    private SystemDiscoveryMapper systemDiscoveryMapper;
+
+
+
+    public SystemDiscoveryServiceImpl() {
+    }
+
+    @PostConstruct
+    @Override
+    public void resetSystemDiscovery(){
         systemDiscovery = new SystemDiscovery();
         systemDiscovery.setSystems(
                 feedProviderService.getFeedProviders().stream()

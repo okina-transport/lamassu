@@ -62,7 +62,7 @@ public class FeedCachesUpdater {
         return oldDelivery;
     }
 
-    private <T> void updateFeedCache(FeedProvider feedProvider, GBFSFeedName feedName, T feed) {
+    public <T> void updateFeedCache(FeedProvider feedProvider, GBFSFeedName feedName, T feed) {
         if (feed != null) {
             logger.debug("updating feed {} for provider {}", feedName, feedProvider.getSystemId());
             logger.trace("updating feed {} for provider {} data {}", feedName, feedProvider.getSystemId(), feed);

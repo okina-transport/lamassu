@@ -50,6 +50,12 @@ public class FeedProviderServiceImpl implements FeedProviderService {
     }
 
     @Override
+    public void addProvider(FeedProvider feedProviderToAdd){
+        feedProviders.add(feedProviderToAdd);
+        feedProvidersBySystemId.put(feedProviderToAdd.getSystemId(), feedProviderToAdd);
+    }
+
+    @Override
     public List<Operator> getOperators() {
         return getFeedProviders().stream()
                 .map(this::mapOperator)
