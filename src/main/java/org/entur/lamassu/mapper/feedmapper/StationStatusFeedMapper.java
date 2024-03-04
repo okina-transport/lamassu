@@ -66,7 +66,13 @@ public class StationStatusFeedMapper extends AbstractFeedMapper<GBFSStationStatu
         mapped.setNumBikesAvailable(station.getNumBikesAvailable());
         mapped.setVehicleTypesAvailable(mapVehicleTypesAvailable(station.getVehicleTypesAvailable(), feedProvider).orElse(null));
         mapped.setNumBikesDisabled(station.getNumBikesDisabled());
-        mapped.setNumDocksAvailable(station.getNumDocksAvailable());
+
+        if (station.getNumDocksAvailable()  == null || station.getNumDocksAvailable() < 1){
+            mapped.setNumDocksAvailable(0);
+        }else{
+            mapped.setNumDocksAvailable(station.getNumDocksAvailable());
+        }
+
         mapped.setVehicleDocksAvailable(mapVehicleDocksAvailable(station.getVehicleDocksAvailable(), feedProvider).orElse(null));
         mapped.setNumDocksDisabled(station.getNumDocksDisabled());
         mapped.setIsInstalled(station.getIsInstalled());
