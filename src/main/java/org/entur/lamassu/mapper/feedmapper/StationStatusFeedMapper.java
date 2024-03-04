@@ -112,7 +112,14 @@ public class StationStatusFeedMapper extends AbstractFeedMapper<GBFSStationStatu
                                     id -> IdMappers.mapId(feedProvider.getCodespace(), IdMappers.VEHICLE_TYPE_ID_TYPE, id)
                             ).collect(Collectors.toList())
                     );
-                    mapped.setCount(vda.getCount());
+
+
+                    if (vda.getCount() == null || vda.getCount() < 1){
+                        mapped.setCount(0);
+                    }else{
+                        mapped.setCount(vda.getCount());
+                    }
+
                     return mapped;
                 }).collect(Collectors.toList())
         );
