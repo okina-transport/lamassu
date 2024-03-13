@@ -60,6 +60,7 @@ public class FreeBikeStatusFeedMapper extends AbstractFeedMapper<GBFSFreeBikeSta
 
         mapped.setBikes(
                 data.getBikes().stream()
+                        .filter(bike -> (bike.getLon() != null && bike.getLat() != null) || bike.getStationId() != null)
                         .map(bike -> mapBike(bike, feedProvider))
                         .collect(Collectors.toList())
         );

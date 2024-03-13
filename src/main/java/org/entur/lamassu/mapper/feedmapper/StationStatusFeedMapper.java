@@ -66,8 +66,19 @@ public class StationStatusFeedMapper extends AbstractFeedMapper<GBFSStationStatu
         mapped.setNumBikesAvailable(station.getNumBikesAvailable());
         mapped.setVehicleTypesAvailable(mapVehicleTypesAvailable(station.getVehicleTypesAvailable(), feedProvider).orElse(null));
         mapped.setNumBikesDisabled(station.getNumBikesDisabled());
-        mapped.setNumDocksAvailable(station.getNumDocksAvailable());
-        mapped.setVehicleDocksAvailable(mapVehicleDocksAvailable(station.getVehicleDocksAvailable(), feedProvider).orElse(null));
+
+        if (station.getNumDocksAvailable()  == null || station.getNumDocksAvailable() < 1){
+            mapped.setNumDocksAvailable(0);
+        }else{
+            mapped.setNumDocksAvailable(station.getNumDocksAvailable());
+        }
+
+        if (station.getVehicleDocksAvailable()  == null || station.getVehicleDocksAvailable().size() < 1){
+            mapped.setVehicleDocksAvailable(null);
+        }else{
+            mapped.setVehicleDocksAvailable(mapVehicleDocksAvailable(station.getVehicleDocksAvailable(), feedProvider).orElse(null));
+        }
+
         mapped.setNumDocksDisabled(station.getNumDocksDisabled());
         mapped.setIsInstalled(station.getIsInstalled());
         mapped.setIsRenting(station.getIsRenting());
@@ -101,7 +112,14 @@ public class StationStatusFeedMapper extends AbstractFeedMapper<GBFSStationStatu
                                     id -> IdMappers.mapId(feedProvider.getCodespace(), IdMappers.VEHICLE_TYPE_ID_TYPE, id)
                             ).collect(Collectors.toList())
                     );
-                    mapped.setCount(vda.getCount());
+
+
+                    if (vda.getCount() == null || vda.getCount() < 1){
+                        mapped.setCount(0);
+                    }else{
+                        mapped.setCount(vda.getCount());
+                    }
+
                     return mapped;
                 }).collect(Collectors.toList())
         );
