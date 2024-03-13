@@ -48,6 +48,16 @@ public class FreeBikeStatusFeedMapper extends AbstractFeedMapper<GBFSFreeBikeSta
 
     private GBFSData mapData(GBFSData data, FeedProvider feedProvider) {
         var mapped = new GBFSData();
+
+
+        data.getBikes().forEach(bike -> bike.setBikeId(bike.getBikeId().replace(" ", "_")
+                                                            .replace("(","_")
+                                                            .replace(")","_")
+                                                            .replace("é","_")
+                                                            .replace("à","_")
+        ));
+
+
         mapped.setBikes(
                 data.getBikes().stream()
                         .map(bike -> mapBike(bike, feedProvider))
