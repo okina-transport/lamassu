@@ -18,6 +18,7 @@
 
 package org.entur.lamassu.mapper.feedmapper;
 
+import org.apache.commons.lang3.StringUtils;
 import org.entur.gbfs.v2_3.system_pricing_plans.GBFSData;
 import org.entur.gbfs.v2_3.system_pricing_plans.GBFSPlan;
 import org.entur.gbfs.v2_3.system_pricing_plans.GBFSSystemPricingPlans;
@@ -87,7 +88,10 @@ public class SystemPricingPlansFeedMapper extends AbstractFeedMapper<GBFSSystemP
         mapped.setCurrency(plan.getCurrency());
         mapped.setIsTaxable(plan.getIsTaxable());
         mapped.setPrice(plan.getPrice());
-        mapped.setUrl(plan.getUrl());
+
+        if (StringUtils.isNotEmpty(plan.getUrl())){
+            mapped.setUrl(plan.getUrl());
+        }
         mapped.setSurgePricing(plan.getSurgePricing());
         mapped.setPerKmPricing(plan.getPerKmPricing());
         mapped.setPerMinPricing(plan.getPerMinPricing());
