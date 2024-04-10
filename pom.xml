@@ -9,7 +9,7 @@
     </parent>
     <groupId>org.entur</groupId>
     <artifactId>lamassu</artifactId>
-    <version>1.0.4-mobi-iti-SNAPSHOT</version>
+    <version>1.0.5-mobi-iti-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>lamassu</name>
