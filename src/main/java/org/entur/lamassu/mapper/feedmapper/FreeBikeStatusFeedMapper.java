@@ -25,6 +25,7 @@ import org.entur.lamassu.model.provider.FeedProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Component
@@ -50,12 +51,16 @@ public class FreeBikeStatusFeedMapper extends AbstractFeedMapper<GBFSFreeBikeSta
         var mapped = new GBFSData();
 
 
-        data.getBikes().forEach(bike -> bike.setBikeId(bike.getBikeId().replace(" ", "_")
-                                                            .replace("(","_")
-                                                            .replace(")","_")
-                                                            .replace("é","_")
-                                                            .replace("à","_")
-        ));
+        data.getBikes().stream()
+                .filter(bike -> bike.getBikeId() != null)
+                .forEach(bike -> bike.setBikeId(bike.getBikeId().replace(" ", "_")
+                                .replace("(","_")
+                                .replace(")","_")
+                                .replace("é","_")
+                                .replace("à","_")));
+
+
+
 
 
         mapped.setBikes(
