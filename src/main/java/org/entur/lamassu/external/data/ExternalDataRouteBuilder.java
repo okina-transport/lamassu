@@ -3,7 +3,6 @@ package org.entur.lamassu.external.data;
 import org.apache.camel.builder.RouteBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 @Component
 public class ExternalDataRouteBuilder extends RouteBuilder {
@@ -19,9 +18,6 @@ public class ExternalDataRouteBuilder extends RouteBuilder {
 
     @Value("${realtime.gbfs.pricing.plans.process.queue}")
     private String externalGBFSPricingPlanQueue;
-
-
-
 
     @Override
     public void configure() throws Exception {
