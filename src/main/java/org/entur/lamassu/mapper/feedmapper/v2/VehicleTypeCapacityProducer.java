@@ -21,6 +21,7 @@ package org.entur.lamassu.mapper.feedmapper.v2;
 import java.util.List;
 import org.mobilitydata.gbfs.v2_3.station_status.GBFSStationStatus;
 import org.mobilitydata.gbfs.v2_3.station_status.GBFSVehicleTypesAvailable;
+import org.mobilitydata.gbfs.v2_3.vehicle_types.GBFSVehicleType;
 import org.mobilitydata.gbfs.v2_3.vehicle_types.GBFSVehicleTypes;
 
 public class VehicleTypeCapacityProducer {
@@ -36,8 +37,26 @@ public class VehicleTypeCapacityProducer {
     GBFSStationStatus stationStatus,
     GBFSVehicleTypes vehicleTypes
   ) {
-    if (
-      vehicleTypes != null &&
+    if (vehicleTypes == null) {
+      GBFSVehicleType vehicleType = new GBFSVehicleType();
+      stationStatus
+        .getData()
+        .getStations()
+        .forEach(station -> {
+          if (
+            station.getVehicleTypesAvailable() == null ||
+            station.getVehicleTypesAvailable().isEmpty()
+          ) {
+            station.setVehicleTypesAvailable(
+              List.of(
+                new GBFSVehicleTypesAvailable()
+                  .withVehicleTypeId(vehicleType.getVehicleTypeId())
+                  .withCount(station.getNumBikesAvailable())
+              )
+            );
+          }
+        });
+    } else if (
       vehicleTypes.getData() != null &&
       vehicleTypes.getData().getVehicleTypes() != null &&
       vehicleTypes.getData().getVehicleTypes().size() == 1

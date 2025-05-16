@@ -24,6 +24,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 import org.entur.lamassu.mapper.feedmapper.AbstractFeedMapper;
 import org.entur.lamassu.mapper.feedmapper.IdMappers;
 import org.entur.lamassu.model.provider.FeedProvider;
@@ -98,7 +99,9 @@ public class SystemPricingPlansFeedMapper
     mapped.setCurrency(plan.getCurrency());
     mapped.setIsTaxable(plan.getIsTaxable());
     mapped.setPrice(plan.getPrice());
-    mapped.setUrl(plan.getUrl());
+    if (StringUtils.isNotEmpty(plan.getUrl())) {
+      mapped.setUrl(plan.getUrl());
+    }
     mapped.setSurgePricing(plan.getSurgePricing());
     mapped.setPerKmPricing(plan.getPerKmPricing());
     mapped.setPerMinPricing(plan.getPerMinPricing());

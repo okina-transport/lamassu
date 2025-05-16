@@ -21,6 +21,7 @@ package org.entur.lamassu.mapper.feedmapper.v2;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.apache.commons.collections.CollectionUtils;
 import org.entur.lamassu.mapper.feedmapper.AbstractFeedMapper;
 import org.entur.lamassu.mapper.feedmapper.IdMappers;
 import org.entur.lamassu.model.provider.FeedProvider;
@@ -79,11 +80,19 @@ public class StationStatusFeedMapper extends AbstractFeedMapper<GBFSStationStatu
         .orElse(null)
     );
     mapped.setNumBikesDisabled(station.getNumBikesDisabled());
-    mapped.setNumDocksAvailable(station.getNumDocksAvailable());
-    mapped.setVehicleDocksAvailable(
-      mapVehicleDocksAvailable(station.getVehicleDocksAvailable(), feedProvider)
-        .orElse(null)
-    );
+    if (station.getNumDocksAvailable() == null || station.getNumDocksAvailable() < 1) {
+      mapped.setNumDocksAvailable(0);
+    } else {
+      mapped.setNumDocksAvailable(station.getNumDocksAvailable());
+    }
+    if (CollectionUtils.isEmpty(station.getVehicleDocksAvailable())) {
+      mapped.setVehicleDocksAvailable(null);
+    } else {
+      mapped.setVehicleDocksAvailable(
+        mapVehicleDocksAvailable(station.getVehicleDocksAvailable(), feedProvider)
+          .orElse(null)
+      );
+    }
     mapped.setNumDocksDisabled(station.getNumDocksDisabled());
     mapped.setIsInstalled(station.getIsInstalled());
     mapped.setIsRenting(station.getIsRenting());
@@ -141,7 +150,11 @@ public class StationStatusFeedMapper extends AbstractFeedMapper<GBFSStationStatu
                 )
                 .collect(Collectors.toList())
             );
-            mapped.setCount(vda.getCount());
+            if (vda.getCount() == null || vda.getCount() < 1) {
+              mapped.setCount(0);
+            } else {
+              mapped.setCount(vda.getCount());
+            }
             return mapped;
           })
           .collect(Collectors.toList())
