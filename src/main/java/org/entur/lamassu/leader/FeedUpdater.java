@@ -22,6 +22,7 @@ import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
+import org.apache.commons.collections.CollectionUtils;
 import org.entur.gbfs.GbfsSubscriptionManager;
 import org.entur.gbfs.GbfsSubscriptionOptions;
 import org.entur.gbfs.loader.v2.GbfsV2Delivery;
@@ -72,10 +73,13 @@ public class FeedUpdater {
   @Value("${org.entur.lamassu.enableValidation:false}")
   private boolean enableValidation;
 
+  @Value("${fr.okina.lamassu.enableGbfsV3ToV2Mapping:false}")
+  private boolean enableGbfsV3ToV2Mapping;
+
   @Value("${org.entur.lamassu.maxValidationResultsPerSystem:10}")
   private Integer maxValidationResultsPerSystem;
 
-  private MetricsService metricsService;
+  private final MetricsService metricsService;
 
   @Autowired
   public FeedUpdater(
@@ -150,10 +154,12 @@ public class FeedUpdater {
           options,
           gbfsV3Delivery -> {
             registerV3Validation(feedProvider, gbfsV3Delivery);
-            receiveV2Update(
-              feedProvider,
-              GbfsFeedVersionMappers.map(gbfsV3Delivery, feedProvider.getLanguage())
-            );
+            if (this.enableGbfsV3ToV2Mapping) {
+              receiveV2Update(
+                feedProvider,
+                GbfsFeedVersionMappers.map(gbfsV3Delivery, feedProvider.getLanguage())
+              );
+            }
             receiveV3Update(feedProvider, gbfsV3Delivery);
             cacheReady.set(true);
           },
@@ -243,7 +249,9 @@ public class FeedUpdater {
     ValidationResult validationResult
   ) {
     var validationResults = validationResultsCache.get(systemId);
-    var mostRecent = validationResults.get(validationResults.size() - 1);
+    var mostRecent = CollectionUtils.isEmpty(validationResults)
+      ? null
+      : validationResults.getLast();
 
     if (validationResult.sameAs(mostRecent)) {
       validationResults.fastSet(validationResults.size() - 1, validationResult);
