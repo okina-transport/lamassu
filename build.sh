@@ -2,8 +2,6 @@
 
 echo Building docker image
 
-
-# Back
 VERSION_JAR=$(mvn -q \
     -Dexec.executable=echo \
     -Dexec.args='${project.version}' \
@@ -12,11 +10,12 @@ VERSION_JAR=$(mvn -q \
 
 echo "version_jar:"$VERSION_JAR
 BACK_IMAGE_NAME=registry.okina.fr/mobiiti/lamassu:"${VERSION_JAR}"
+LAMASSU_JAR="lamassu-${VERSION_JAR}.jar"
 
-# Maven job is done by Jenkins
+cp "./target/$LAMASSU_JAR" .
 
+docker build -t "${BACK_IMAGE_NAME}" --build-arg JAR_FILE="$LAMASSU_JAR" .
 
-docker build -t "${BACK_IMAGE_NAME}" --build-arg JAR_FILE=target/lamassu-${VERSION_JAR}.jar .
-
+rm "$LAMASSU_JAR"
 
 docker push "${BACK_IMAGE_NAME}"
