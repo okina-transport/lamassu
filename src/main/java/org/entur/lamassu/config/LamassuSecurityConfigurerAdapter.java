@@ -1,56 +1,69 @@
 package org.entur.lamassu.config;
 
-import java.util.Arrays;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
 public class LamassuSecurityConfigurerAdapter {
 
-  @Bean
-  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    return http
-      .csrf(AbstractHttpConfigurer::disable)
-      .cors(Customizer.withDefaults())
-      .authorizeHttpRequests(auth ->
-        auth
-          .requestMatchers(AntPathRequestMatcher.antMatcher("/admin/**"))
-          .hasRole("ADMIN")
-          .requestMatchers(AntPathRequestMatcher.antMatcher("/**"))
-          .permitAll()
-      )
-      .httpBasic(Customizer.withDefaults())
-      .build();
-  }
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http.oauth2ResourceServer(oauth2 -> oauth2
+                .jwt(Customizer.withDefaults())
+        );
 
-  @Bean
-  public PasswordEncoder passwordEncoder() {
-    return new BCryptPasswordEncoder();
-  }
+        // State-less session (state in access token only)
+        http.sessionManagement(sessionManagement ->
+                sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-  @Bean
-  @Profile("cors")
-  CorsConfigurationSource corsConfigurationSource() {
-    CorsConfiguration configuration = new CorsConfiguration();
-    configuration.setAllowedOrigins(Arrays.asList("*"));
-    configuration.setAllowedMethods(Arrays.asList("*"));
-    configuration.setAllowedHeaders(Arrays.asList("*"));
-    UrlBasedCorsConfigurationSource urlBasedCorsConfigurationSource =
-      new UrlBasedCorsConfigurationSource();
-    urlBasedCorsConfigurationSource.registerCorsConfiguration("/**", configuration);
-    return urlBasedCorsConfigurationSource;
-  }
+        // Disable CSRF because of state-less session-management
+        http.csrf(AbstractHttpConfigurer::disable);
+
+        // Return 401 (unauthorized) instead of 302 (redirect to login) when
+        // authorization is missing or invalid
+        http.exceptionHandling(exceptionHandling ->
+                exceptionHandling.authenticationEntryPoint((request, response, authException) -> {
+                    response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Bearer realm=\"Restricted Content\"");
+                    response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
+                })
+        );
+
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
+
+        // Configure authorization
+        http.authorizeHttpRequests(authorize ->
+                authorize
+                        .requestMatchers("/admin/**").hasRole("admin")
+                        .requestMatchers("/**").permitAll()
+        );
+
+        return http.build();
+    }
+
+
+    private UrlBasedCorsConfigurationSource corsConfigurationSource() {
+        final var configuration = new CorsConfiguration();
+        // should be restricted
+        configuration.setAllowedOrigins(List.of("*"));
+        configuration.setAllowedMethods(List.of("*"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setExposedHeaders(List.of("*"));
+
+        final var source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 }

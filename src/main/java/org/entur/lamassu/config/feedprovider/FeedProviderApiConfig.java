@@ -1,24 +1,23 @@
 package org.entur.lamassu.config.feedprovider;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.collections4.ListUtils;
+import org.entur.lamassu.model.provider.FeedProvider;
+import org.entur.lamassu.service.TokenService;
+import org.entur.lamassu.util.GbfsUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.web.reactive.function.client.WebClient;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import org.apache.commons.collections4.ListUtils;
-import org.entur.lamassu.model.provider.FeedProvider;
-import org.entur.lamassu.service.TokenService;
-import org.entur.lamassu.util.GbfsUtils;
-import org.mobilitydata.gbfs.v2_3.gbfs.GBFSFeedName;
-import org.mobilitydata.gbfs.v2_3.vehicle_types.GBFSVehicleType;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration
+@Primary
 public class FeedProviderApiConfig implements FeedProviderConfig {
 
   private static final String GBFS_APIS_URI = "/gbfs-apis/for-lamassu";
@@ -45,7 +44,7 @@ public class FeedProviderApiConfig implements FeedProviderConfig {
       getWebClient(GBFS_APIS_URI)
         .retrieve()
         .bodyToMono(Map.class)
-        .map(this::extractProviders)
+        .map(this::extractProviders).onErrorReturn(new ArrayList<>(0))
         .block()
     );
   }
