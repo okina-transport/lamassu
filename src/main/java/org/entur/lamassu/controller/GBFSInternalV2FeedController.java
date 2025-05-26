@@ -50,7 +50,7 @@ import org.springframework.web.server.ResponseStatusException;
  * base url, e.g. for behind-proxy access.
  *
  * @deprecated The URL should instead be dynamic based on Host header or similar
- *              see {@link https://github.com/entur/lamassu/issues/263}
+ *              see {@link <a href="https://github.com/entur/lamassu/issues/263">...</a>}
  */
 @RestController
 public class GBFSInternalV2FeedController {
