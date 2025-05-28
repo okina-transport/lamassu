@@ -22,25 +22,29 @@ import org.springframework.stereotype.Component;
 @Component
 public class SystemDiscoveryServiceImpl implements SystemDiscoveryService {
 
+  private final FeedProviderService feedProviderService;
+  private final SystemDiscoveryMapper systemDiscoveryMapper;
+
   private final SystemDiscovery systemDiscovery;
   private final GBFSManifest gbfsManifest;
 
   public SystemDiscoveryServiceImpl(
-    FeedProviderService feedProviderService,
-    SystemDiscoveryMapper systemDiscoveryMapper,
-    @Value("${org.entur.lamassu.baseUrl}") String baseUrl,
-    @Value(
+          FeedProviderService feedProviderService1, SystemDiscoveryMapper systemDiscoveryMapper1, FeedProviderService feedProviderService,
+          SystemDiscoveryMapper systemDiscoveryMapper,
+          @Value("${org.entur.lamassu.baseUrl}") String baseUrl,
+          @Value(
       "${fr.okina.lamassu.enableGbfsV3ToV2Mapping:false}"
     ) boolean enableGbfsV3ToV2Mapping
   ) {
-    this.systemDiscovery = mapSystemDiscovery(feedProviderService, systemDiscoveryMapper);
+      this.feedProviderService = feedProviderService1;
+      this.systemDiscoveryMapper = systemDiscoveryMapper1;
+      this.systemDiscovery = mapSystemDiscovery(feedProviderService, systemDiscoveryMapper);
     this.gbfsManifest =
       mapGBFSManifest(feedProviderService, baseUrl, enableGbfsV3ToV2Mapping);
   }
 
-  @Override
   public SystemDiscovery getSystemDiscovery() {
-    return systemDiscovery;
+    return mapSystemDiscovery(feedProviderService, systemDiscoveryMapper);  // Recalculé à chaque appel
   }
 
   @Override

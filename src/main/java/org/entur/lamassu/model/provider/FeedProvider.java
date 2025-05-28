@@ -34,7 +34,7 @@ public class FeedProvider {
   private Authentication authentication;
 
   private List<GBFSFeedName> excludeFeeds;
-  private Boolean aggregate = true;
+  private Boolean aggregate;
   private List<GBFSVehicleType> vehicleTypes;
   private List<GBFSPlan> pricingPlans;
 

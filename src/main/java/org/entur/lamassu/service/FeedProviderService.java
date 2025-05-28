@@ -28,4 +28,6 @@ public interface FeedProviderService {
   List<String> getSystems();
   List<Operator> getOperators();
   FeedProvider getFeedProviderBySystemId(String systemId);
+  void deleteFeedProvider(String systemId);
+  FeedProvider findSubscriptionBySystemId(String systemId);
 }
