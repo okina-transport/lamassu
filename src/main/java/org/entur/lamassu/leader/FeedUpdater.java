@@ -127,11 +127,11 @@ public class FeedUpdater {
     updaterThreadPool.shutdown();
   }
 
-  private void createSubscriptions() {
+  public void createSubscriptions() {
     feedProviderConfig.getProviders().parallelStream().forEach(this::createSubscription);
   }
 
-  private void createSubscription(FeedProvider feedProvider) {
+  public void createSubscription(FeedProvider feedProvider) {
     var options = new GbfsSubscriptionOptions(
       URI.create(feedProvider.getUrl()),
       feedProvider.getLanguage(),
