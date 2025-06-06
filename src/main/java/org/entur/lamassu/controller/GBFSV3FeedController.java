@@ -19,6 +19,8 @@
 package org.entur.lamassu.controller;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
 import org.entur.lamassu.cache.GBFSV3FeedCache;
@@ -30,6 +32,8 @@ import org.jetbrains.annotations.NotNull;
 import org.mobilitydata.gbfs.v3_0.gbfs.GBFSFeed;
 import org.mobilitydata.gbfs.v3_0.gbfs.GBFSGbfs;
 import org.mobilitydata.gbfs.v3_0.manifest.GBFSManifest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.CacheControl;
@@ -44,6 +48,8 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 @RequestMapping({ "/gbfs/v3" })
 public class GBFSV3FeedController {
+
+  private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
   @Value("${org.entur.lamassu.gbfs.cache-control.minimum-ttl:0}")
   private int cacheControlMinimumTtl;
@@ -118,6 +124,7 @@ public class GBFSV3FeedController {
 
   @NotNull
   protected Object getFeed(String systemId, String feed) {
+    LocalDateTime start = LocalDateTime.now();
     var feedName = GBFSFeed.Name.fromValue(feed);
     var feedProvider = feedProviderService.getFeedProviderBySystemId(systemId);
 
@@ -131,6 +138,10 @@ public class GBFSV3FeedController {
       throwsIfFeedCouldOrShouldExist(feedName, feedProvider);
       throw new NoSuchElementException();
     }
+
+    LocalDateTime end = LocalDateTime.now();
+    double duration = ChronoUnit.MILLIS.between(start, end) * 0.001;
+    logger.info("GBFS stream playback time on a customer call : " + feedProvider.getSystemId() + "  : " + duration + "s");
     return data;
   }
 

@@ -19,6 +19,8 @@
 package org.entur.lamassu.leader;
 
 import java.net.URI;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
@@ -80,6 +82,7 @@ public class FeedUpdater {
   private Integer maxValidationResultsPerSystem;
 
   private final MetricsService metricsService;
+  private long iterationNb = 0;
 
   @Autowired
   public FeedUpdater(
@@ -270,7 +273,12 @@ public class FeedUpdater {
       gbfsV2Delivery,
       feedProvider
     );
+    LocalDateTime start = LocalDateTime.now();
     v2FeedCachesUpdater.updateFeedCaches(feedProvider, mappedDelivery);
+    LocalDateTime end = LocalDateTime.now();
+    double duration = ChronoUnit.MILLIS.between(start, end) * 0.001;
+    logger.info("GBFS data recovery time : " + feedProvider.getSystemId() + " iteration " + iterationNb + " : " + duration + "s");
+    iterationNb++;
   }
 
   private void receiveV3Update(FeedProvider feedProvider, GbfsV3Delivery gbfsV3Delivery) {
@@ -278,9 +286,14 @@ public class FeedUpdater {
       gbfsV3Delivery,
       feedProvider
     );
+    LocalDateTime start = LocalDateTime.now();
     var oldDelivery = v3FeedCachesUpdater.updateFeedCaches(feedProvider, mappedDelivery);
     if (Boolean.TRUE.equals(feedProvider.getAggregate())) {
       entityCachesUpdater.updateEntityCaches(feedProvider, mappedDelivery, oldDelivery);
     }
+    LocalDateTime end = LocalDateTime.now();
+    double duration = ChronoUnit.MILLIS.between(start, end) * 0.001;
+    logger.info("GBFS data recovery time : " + feedProvider.getSystemId() + " iteration " + iterationNb + " : " + duration + "s");
+    iterationNb++;
   }
 }
