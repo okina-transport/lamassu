@@ -277,7 +277,15 @@ public class FeedUpdater {
     v2FeedCachesUpdater.updateFeedCaches(feedProvider, mappedDelivery);
     LocalDateTime end = LocalDateTime.now();
     double duration = ChronoUnit.MILLIS.between(start, end) * 0.001;
-    logger.info("GBFS data recovery time : " + feedProvider.getSystemId() + " iteration " + iterationNb + " : " + duration + "s");
+    logger.info(
+      "GBFS data recovery time : " +
+      feedProvider.getSystemId() +
+      " iteration " +
+      iterationNb +
+      " : " +
+      duration +
+      "s"
+    );
     iterationNb++;
   }
 
@@ -293,7 +301,15 @@ public class FeedUpdater {
     }
     LocalDateTime end = LocalDateTime.now();
     double duration = ChronoUnit.MILLIS.between(start, end) * 0.001;
-    logger.info("GBFS data recovery time : " + feedProvider.getSystemId() + " iteration " + iterationNb + " : " + duration + "s");
+    logger.info(
+      "GBFS data recovery time : " +
+      feedProvider.getSystemId() +
+      " iteration " +
+      iterationNb +
+      " : " +
+      duration +
+      "s"
+    );
     iterationNb++;
   }
 }

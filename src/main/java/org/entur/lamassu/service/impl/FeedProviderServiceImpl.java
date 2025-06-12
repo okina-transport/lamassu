@@ -20,7 +20,6 @@ package org.entur.lamassu.service.impl;
 
 import java.util.*;
 import java.util.stream.Collectors;
-
 import org.entur.lamassu.config.feedprovider.FeedProviderConfig;
 import org.entur.lamassu.mapper.entitymapper.TranslationMapper;
 import org.entur.lamassu.model.entities.Operator;
@@ -37,8 +36,8 @@ public class FeedProviderServiceImpl implements FeedProviderService {
 
   @Autowired
   public FeedProviderServiceImpl(
-          FeedProviderConfig feedProviderConfig,
-          TranslationMapper translationMapper
+    FeedProviderConfig feedProviderConfig,
+    TranslationMapper translationMapper
   ) {
     this.feedProviderConfig = feedProviderConfig;
     this.translationMapper = translationMapper;
@@ -52,36 +51,41 @@ public class FeedProviderServiceImpl implements FeedProviderService {
   @Override
   public List<Operator> getOperators() {
     return getFeedProviders()
-            .stream()
-            .map(this::mapOperator)
-            .distinct()
-            .collect(Collectors.toList());
+      .stream()
+      .map(this::mapOperator)
+      .distinct()
+      .collect(Collectors.toList());
   }
 
   private Operator mapOperator(FeedProvider feedProvider) {
     var operator = new Operator();
     operator.setId(feedProvider.getOperatorId());
     operator.setName(
-            translationMapper.mapSingleTranslation(
-                    feedProvider.getLanguage(),
-                    feedProvider.getOperatorName()
-            )
+      translationMapper.mapSingleTranslation(
+        feedProvider.getLanguage(),
+        feedProvider.getOperatorName()
+      )
     );
     return operator;
   }
 
   @Override
   public FeedProvider getFeedProviderBySystemId(String systemId) {
-    return feedProviderConfig.getProviders().stream().filter(fp -> systemId.equals(fp.getSystemId())).findFirst().orElse(null);
+    return feedProviderConfig
+      .getProviders()
+      .stream()
+      .filter(fp -> systemId.equals(fp.getSystemId()))
+      .findFirst()
+      .orElse(null);
   }
 
   @Override
   public List<String> getCodespaces() {
     return getFeedProviders()
-            .stream()
-            .map(FeedProvider::getCodespace)
-            .distinct()
-            .toList();
+      .stream()
+      .map(FeedProvider::getCodespace)
+      .distinct()
+      .toList();
   }
 
   @Override
@@ -91,7 +95,9 @@ public class FeedProviderServiceImpl implements FeedProviderService {
 
   @Override
   public void deleteFeedProvider(String systemId) {
-    boolean removed = feedProviderConfig.getProviders().removeIf(fp -> fp.getSystemId().equals(systemId));
+    boolean removed = feedProviderConfig
+      .getProviders()
+      .removeIf(fp -> fp.getSystemId().equals(systemId));
     feedProviderConfig.getProviders().remove(systemId);
 
     if (!removed) {
@@ -101,6 +107,11 @@ public class FeedProviderServiceImpl implements FeedProviderService {
 
   @Override
   public FeedProvider findSubscriptionBySystemId(String systemId) {
-    return feedProviderConfig.getProviders().stream().filter(provider -> provider.getSystemId().equals(systemId)).findFirst().orElse(null);
+    return feedProviderConfig
+      .getProviders()
+      .stream()
+      .filter(provider -> provider.getSystemId().equals(systemId))
+      .findFirst()
+      .orElse(null);
   }
 }

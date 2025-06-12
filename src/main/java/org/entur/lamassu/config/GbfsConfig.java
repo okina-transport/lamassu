@@ -7,9 +7,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class GbfsConfig {
 
-    @Bean
-    public GbfsSubscriptionManager gbfsSubscriptionManager() {
-        // Initialize GbfsSubscriptionManager with required dependencies (if any)
-        return new GbfsSubscriptionManager();
-    }
+  @Bean
+  public GbfsSubscriptionManager gbfsSubscriptionManager() {
+    // Initialize GbfsSubscriptionManager with required dependencies (if any)
+    return new GbfsSubscriptionManager();
+  }
 }

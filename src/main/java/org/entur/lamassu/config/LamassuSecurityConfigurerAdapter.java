@@ -64,7 +64,9 @@ public class LamassuSecurityConfigurerAdapter {
     final var configuration = new CorsConfiguration();
     // should be restricted
     configuration.setAllowedOrigins(List.of("*"));
-    configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+    configuration.setAllowedMethods(
+      Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS")
+    );
     configuration.setAllowedHeaders(List.of("*"));
     configuration.setExposedHeaders(List.of("*"));
 
