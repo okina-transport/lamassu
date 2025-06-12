@@ -1,11 +1,9 @@
 package org.entur.lamassu.integration;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import okhttp3.mockwebserver.Dispatcher;
+import java.nio.charset.StandardCharsets;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
@@ -17,6 +15,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -35,73 +34,83 @@ public abstract class AbstractIntegrationTestBase {
   @Autowired
   private LeaderSingletonService leaderSingletonService;
 
-  private static MockWebServer mockWebServer;
+  private static MockWebServer gbfsProvidersMockWebServer;
+  private static MockWebServer ishtarMockServer;
 
   @BeforeAll
   public static void setUp() throws IOException {
-    mockWebServer = new MockWebServer();
+    gbfsProvidersMockWebServer = new MockWebServer();
+    gbfsProvidersMockWebServer.setDispatcher(new GBFSDispatcher());
+    gbfsProvidersMockWebServer.start(8888);
 
-    final Dispatcher dispatcher = new Dispatcher() {
-      @NotNull
-      @Override
-      public MockResponse dispatch(@NotNull RecordedRequest recordedRequest) {
-        switch (recordedRequest.getPath()) {
-          case "/testatlantis/gbfs":
-            return getMockResponse("v2/gbfs.json");
-          case "/testatlantis/gbfs_versions":
-            return getMockResponse("v2/gbfs_versions.json");
-          case "/testatlantis/vehicle_types":
-            return getMockResponse("v2/vehicle_types.json");
-          case "/testatlantis/station_information":
-            return getMockResponse("v2/station_information.json");
-          case "/testatlantis/station_status":
-            return getMockResponse("v2/station_status.json");
-          case "/testatlantis/system_information":
-            return getMockResponse("v2/system_information.json");
-          case "/testatlantis/free_bike_status":
-            return getMockResponse("v2/free_bike_status.json");
-          case "/testatlantis/system_regions":
-            return getMockResponse("v2/system_regions.json");
-          case "/testatlantis/system_pricing_plans":
-            return getMockResponse("v2/system_pricing_plans.json");
-          case "/testatlantis/system_hours":
-            return getMockResponse("v2/system_hours.json");
-          case "/testatlantis/system_calendar":
-            return getMockResponse("v2/system_calendar.json");
-          case "/testatlantis/system_alerts":
-            return getMockResponse("v2/system_alerts.json");
-          case "/testatlantis/geofencing_zones":
-            return getMockResponse("v2/geofencing_zones.json");
-          case "/testozon/gbfs":
-            return getMockResponse("v3/gbfs.json");
-          case "/testozon/gbfs_versions":
-            return getMockResponse("v3/gbfs_versions.json");
-          case "/testozon/vehicle_types":
-            return getMockResponse("v3/vehicle_types.json");
-          case "/testozon/station_information":
-            return getMockResponse("v3/station_information.json");
-          case "/testozon/station_status":
-            return getMockResponse("v3/station_status.json");
-          case "/testozon/system_information":
-            return getMockResponse("v3/system_information.json");
-          case "/testozon/vehicle_status":
-            return getMockResponse("v3/vehicle_status.json");
-          case "/testozon/system_regions":
-            return getMockResponse("v3/system_regions.json");
-          case "/testozon/system_pricing_plans":
-            return getMockResponse("v3/system_pricing_plans.json");
-          case "/testozon/system_alerts":
-            return getMockResponse("v3/system_alerts.json");
-          case "/testozon/geofencing_zones":
-            return getMockResponse("v3/geofencing_zones.json");
-        }
+    ishtarMockServer = new MockWebServer();
+    ishtarMockServer.setDispatcher(new IshtarServerDispatcher());
+    ishtarMockServer.start(8881);
+  }
 
-        return new MockResponse().setResponseCode(404);
-      }
-    };
+  public static class GBFSDispatcher extends okhttp3.mockwebserver.Dispatcher {
 
-    mockWebServer.start(8888);
-    mockWebServer.setDispatcher(dispatcher);
+    @Override
+    public @NotNull MockResponse dispatch(@NotNull RecordedRequest recordedRequest) {
+      return switch (recordedRequest.getPath()) {
+        case "/testatlantis/gbfs" -> getMockResponse("v2/gbfs.json");
+        case "/testatlantis/gbfs_versions" -> getMockResponse("v2/gbfs_versions.json");
+        case "/testatlantis/vehicle_types" -> getMockResponse("v2/vehicle_types.json");
+        case "/testatlantis/station_information" -> getMockResponse(
+          "v2/station_information.json"
+        );
+        case "/testatlantis/station_status" -> getMockResponse("v2/station_status.json");
+        case "/testatlantis/system_information" -> getMockResponse(
+          "v2/system_information.json"
+        );
+        case "/testatlantis/free_bike_status" -> getMockResponse(
+          "v2/free_bike_status.json"
+        );
+        case "/testatlantis/system_regions" -> getMockResponse("v2/system_regions.json");
+        case "/testatlantis/system_pricing_plans" -> getMockResponse(
+          "v2/system_pricing_plans.json"
+        );
+        case "/testatlantis/system_hours" -> getMockResponse("v2/system_hours.json");
+        case "/testatlantis/system_calendar" -> getMockResponse(
+          "v2/system_calendar.json"
+        );
+        case "/testatlantis/system_alerts" -> getMockResponse("v2/system_alerts.json");
+        case "/testatlantis/geofencing_zones" -> getMockResponse(
+          "v2/geofencing_zones.json"
+        );
+        case "/testozon/gbfs" -> getMockResponse("v3/gbfs.json");
+        case "/testozon/gbfs_versions" -> getMockResponse("v3/gbfs_versions.json");
+        case "/testozon/vehicle_types" -> getMockResponse("v3/vehicle_types.json");
+        case "/testozon/station_information" -> getMockResponse(
+          "v3/station_information.json"
+        );
+        case "/testozon/station_status" -> getMockResponse("v3/station_status.json");
+        case "/testozon/system_information" -> getMockResponse(
+          "v3/system_information.json"
+        );
+        case "/testozon/vehicle_status" -> getMockResponse("v3/vehicle_status.json");
+        case "/testozon/system_regions" -> getMockResponse("v3/system_regions.json");
+        case "/testozon/system_pricing_plans" -> getMockResponse(
+          "v3/system_pricing_plans.json"
+        );
+        case "/testozon/system_alerts" -> getMockResponse("v3/system_alerts.json");
+        case "/testozon/geofencing_zones" -> getMockResponse("v3/geofencing_zones.json");
+        default -> new MockResponse().setResponseCode(404);
+      };
+    }
+  }
+
+  public static class IshtarServerDispatcher extends okhttp3.mockwebserver.Dispatcher {
+
+    @Override
+    public @NotNull MockResponse dispatch(@NotNull RecordedRequest recordedRequest) {
+      return switch (recordedRequest.getPath()) {
+        case "/gbfs-apis/for-lamassu" -> getMockResponse("ishtar/gbfs.for-lamassu.json");
+        default -> throw new IllegalStateException(
+          "Unexpected request path: " + recordedRequest.getPath()
+        );
+      };
+    }
   }
 
   @NotNull
@@ -114,8 +123,8 @@ public abstract class AbstractIntegrationTestBase {
 
   @AfterAll
   public static void tearDown() throws IOException {
-    mockWebServer.shutdown();
-    mockWebServer = null;
+    gbfsProvidersMockWebServer.shutdown();
+    ishtarMockServer.shutdown();
   }
 
   @BeforeEach
@@ -127,14 +136,12 @@ public abstract class AbstractIntegrationTestBase {
 
   private static String getFileFromResource(String fileName) {
     try {
-      ClassLoader classLoader = GBFSRestIntegrationTest.class.getClassLoader();
-      URL resource = classLoader.getResource(fileName);
-      if (resource == null) {
+      InputStream inputStream =
+        AbstractIntegrationTestBase.class.getClassLoader().getResourceAsStream(fileName);
+      if (inputStream == null) {
         throw new IllegalArgumentException("file not found! " + fileName);
-      } else {
-        var file = new File(resource.toURI());
-        return Files.readString(Path.of(file.getPath()));
       }
+      return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
