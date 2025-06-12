@@ -43,6 +43,13 @@ public class GbfsIshtarManagement {
   @DeleteMapping("/unsubscribe/{systemId}")
   public ResponseEntity<Map<String, Object>> deleteProvider(@PathVariable String systemId) {
     try {
+      FeedProvider existing = feedProviderService.findSubscriptionBySystemId(systemId);
+      if (existing == null) {
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "The subscription has not been activated, so unsubscribing is not necessary."
+        ));
+      }
       subscriptionManager.unsubscribe(systemId);
       feedProviderService.deleteFeedProvider(systemId);
       return ResponseEntity.ok(Map.of(
@@ -50,7 +57,7 @@ public class GbfsIshtarManagement {
               "message", "Unsubscribe successfully"
       ));
     } catch (IllegalArgumentException e) {
-      logger.error("Error deleting proider {}", systemId, e);
+      logger.error("Error deleting provider {}", systemId, e);
       return ResponseEntity.status(HttpStatus.CONFLICT)
               .body(Map.of(
                       "success", false,

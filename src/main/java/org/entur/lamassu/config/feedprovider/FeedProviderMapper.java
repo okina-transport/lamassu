@@ -28,6 +28,7 @@ public class FeedProviderMapper {
         provider.setCodespace((String) providerData.get("codespace"));
         provider.setUrl((String) providerData.get("url"));
         provider.setLanguage((String) providerData.get("language"));
+        provider.setVersion((String) providerData.get("version"));
         provider.setExcludeFeeds(
                 GbfsUtils.convertToGBFSFeedNameList(providerData.get("excludeFeeds"))
         );
