@@ -23,7 +23,9 @@ public class IshtarClient {
   private final WebClient client;
   private final TokenService tokenService;
   private final FeedProviderMapper feedProviderMapper;
-  @Value("${ishtar.server.url}") URI url;
+
+  @Value("${ishtar.server.url}")
+  URI url;
 
   public IshtarClient(
     @Value("${ishtar.server.url}") URI ishtarUri,
@@ -36,7 +38,7 @@ public class IshtarClient {
   }
 
   public List<FeedProvider> fetchGbfsProviders() {
-    log.info("Ishtar url : "+ url+"/gbfs-apis/for-lamassu");
+    log.info("Ishtar url : " + url + "/gbfs-apis/for-lamassu");
     return client
       .get()
       .uri("/gbfs-apis/for-lamassu")
@@ -65,11 +67,12 @@ public class IshtarClient {
         throw new RuntimeException("providers is not a list");
       }
 
-      return providersList.stream()
-              .filter(Map.class::isInstance)
-              .map(Map.class::cast)
-              .map(feedProviderMapper::mapFromApiResponse)
-              .collect(Collectors.toList());
+      return providersList
+        .stream()
+        .filter(Map.class::isInstance)
+        .map(Map.class::cast)
+        .map(feedProviderMapper::mapFromApiResponse)
+        .collect(Collectors.toList());
     } catch (Exception e) {
       throw new RuntimeException("Failed to parse providers response", e);
     }
