@@ -35,16 +35,9 @@ public class SystemDiscoveryMapper {
   public System mapSystemDiscovery(FeedProvider feedProvider) {
     var mapped = new System();
     mapped.setId(feedProvider.getSystemId());
-    if (feedProvider.getVersion().startsWith("3.")) {
-      mapped.setUrl(
-        FeedUrlUtil.mapFeedUrl(baseUrl, GBFSFeed.Name.GBFS, feedProvider).toString()
-      );
-    } else {
-      mapped.setUrl(
-        FeedUrlUtil.mapFeedUrl(baseUrl, GBFSFeedName.GBFS, feedProvider).toString()
-      );
-    }
-
+    mapped.setUrl(
+      FeedUrlUtil.mapFeedUrl(baseUrl, GBFSFeedName.GBFS, feedProvider).toString()
+    );
     return mapped;
   }
 }
