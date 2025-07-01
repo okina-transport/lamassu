@@ -1,4 +1,4 @@
-package org.entur.lamassu.config.feedprovider;
+package org.entur.lamassu.mapper.feedprovider;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import org.apache.commons.collections.MapUtils;
 import org.entur.lamassu.model.provider.Authentication;
 import org.entur.lamassu.model.provider.AuthenticationScheme;
 import org.entur.lamassu.model.provider.FeedProvider;
@@ -54,6 +55,9 @@ public class FeedProviderMapper {
         Map<String, Object> ppMap = (Map<String, Object>) providerData.get(
           "pricingPlans"
         );
+        if (MapUtils.isEmpty(ppMap)) {
+          return;
+        }
         GBFSPlan pricingPlan = new GBFSPlan();
 
         setIfPresent(ppMap, "planId", v -> pricingPlan.setPlanId((String) v));
@@ -138,6 +142,9 @@ public class FeedProviderMapper {
         Map<String, Object> vtMap = (Map<String, Object>) providerData.get(
           "vehicleTypes"
         );
+        if (MapUtils.isEmpty(vtMap)) {
+          return;
+        }
         GBFSVehicleType vehicleType = new GBFSVehicleType();
 
         setIfPresent(
@@ -270,6 +277,9 @@ public class FeedProviderMapper {
         Map<String, Object> authMap = (Map<String, Object>) providerData.get(
           "authentication"
         );
+        if (MapUtils.isEmpty(authMap)) {
+          return;
+        }
         Authentication authentication = new Authentication();
 
         String authType = (String) authMap.get("type");

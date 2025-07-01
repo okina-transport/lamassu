@@ -19,10 +19,12 @@
 package org.entur.lamassu.model.provider;
 
 import java.util.List;
+import lombok.Data;
 import org.mobilitydata.gbfs.v2_3.gbfs.GBFSFeedName;
 import org.mobilitydata.gbfs.v2_3.system_pricing_plans.GBFSPlan;
 import org.mobilitydata.gbfs.v2_3.vehicle_types.GBFSVehicleType;
 
+@Data
 public class FeedProvider {
 
   private String systemId;
@@ -32,146 +34,9 @@ public class FeedProvider {
   private String url;
   private String language;
   private Authentication authentication;
-
   private List<GBFSFeedName> excludeFeeds;
   private Boolean aggregate;
   private List<GBFSVehicleType> vehicleTypes;
   private List<GBFSPlan> pricingPlans;
-
   private String version;
-
-  public String getSystemId() {
-    return systemId;
-  }
-
-  public void setSystemId(String systemId) {
-    this.systemId = systemId;
-  }
-
-  public String getOperatorId() {
-    return operatorId;
-  }
-
-  public void setOperatorId(String operatorId) {
-    this.operatorId = operatorId;
-  }
-
-  public String getOperatorName() {
-    return operatorName;
-  }
-
-  public void setOperatorName(String operatorName) {
-    this.operatorName = operatorName;
-  }
-
-  public String getCodespace() {
-    return codespace;
-  }
-
-  public void setCodespace(String codespace) {
-    this.codespace = codespace;
-  }
-
-  public String getUrl() {
-    return url;
-  }
-
-  public void setUrl(String url) {
-    this.url = url;
-  }
-
-  public String getLanguage() {
-    return language;
-  }
-
-  public void setLanguage(String language) {
-    this.language = language;
-  }
-
-  public List<GBFSVehicleType> getVehicleTypes() {
-    return vehicleTypes;
-  }
-
-  public void setVehicleTypes(List<GBFSVehicleType> vehicleTypes) {
-    this.vehicleTypes = vehicleTypes;
-  }
-
-  public List<GBFSPlan> getPricingPlans() {
-    return pricingPlans;
-  }
-
-  public void setPricingPlans(List<GBFSPlan> pricingPlans) {
-    this.pricingPlans = pricingPlans;
-  }
-
-  public Authentication getAuthentication() {
-    return authentication;
-  }
-
-  public void setAuthentication(Authentication authentication) {
-    this.authentication = authentication;
-  }
-
-  public List<GBFSFeedName> getExcludeFeeds() {
-    return excludeFeeds;
-  }
-
-  public void setExcludeFeeds(List<GBFSFeedName> excludeFeeds) {
-    this.excludeFeeds = excludeFeeds;
-  }
-
-  public Boolean getAggregate() {
-    return aggregate;
-  }
-
-  public void setAggregate(Boolean aggregate) {
-    this.aggregate = aggregate;
-  }
-
-  public String getVersion() {
-    return version;
-  }
-
-  public void setVersion(String version) {
-    this.version = version;
-  }
-
-  @Override
-  public String toString() {
-    return (
-      "FeedProvider{" +
-      "systemId='" +
-      systemId +
-      '\'' +
-      ", operatorId='" +
-      operatorId +
-      '\'' +
-      ", operatorName='" +
-      operatorName +
-      '\'' +
-      ", codespace='" +
-      codespace +
-      '\'' +
-      ", url='" +
-      url +
-      '\'' +
-      ", language='" +
-      language +
-      '\'' +
-      ", authentication=" +
-      authentication +
-      ", excludeFeeds=" +
-      excludeFeeds +
-      ", aggregate=" +
-      aggregate +
-      ", vehicleTypes=" +
-      vehicleTypes +
-      ", pricingPlans=" +
-      pricingPlans +
-      ", version='" +
-      version +
-      '\'' +
-      '}'
-    );
-  }
 }

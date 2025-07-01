@@ -18,29 +18,49 @@
 
 package org.entur.lamassu.service.impl;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import jakarta.annotation.PostConstruct;
+import java.util.List;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.entur.lamassu.cache.GBFSV2FeedCache;
+import org.entur.lamassu.cache.GBFSV3FeedCache;
 import org.entur.lamassu.config.feedprovider.FeedProviderConfig;
+import org.entur.lamassu.ishtar.IshtarClient;
+import org.entur.lamassu.leader.FeedUpdater;
 import org.entur.lamassu.mapper.entitymapper.TranslationMapper;
 import org.entur.lamassu.model.entities.Operator;
 import org.entur.lamassu.model.provider.FeedProvider;
 import org.entur.lamassu.service.FeedProviderService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 public class FeedProviderServiceImpl implements FeedProviderService {
 
   private final TranslationMapper translationMapper;
   private final FeedProviderConfig feedProviderConfig;
+  private final FeedUpdater feedUpdater;
+  private final IshtarClient ishtarClient;
+  private final GBFSV2FeedCache gbfsV2FeedCache;
+  private final GBFSV3FeedCache gbfsV3FeedCache;
 
   @Autowired
   public FeedProviderServiceImpl(
     FeedProviderConfig feedProviderConfig,
-    TranslationMapper translationMapper
+    TranslationMapper translationMapper,
+    FeedUpdater feedUpdater,
+    IshtarClient ishtarClient,
+    GBFSV2FeedCache gbfsV2FeedCache,
+    GBFSV3FeedCache gbfsV3FeedCache
   ) {
     this.feedProviderConfig = feedProviderConfig;
     this.translationMapper = translationMapper;
+    this.feedUpdater = feedUpdater;
+    this.ishtarClient = ishtarClient;
+    this.gbfsV2FeedCache = gbfsV2FeedCache;
+    this.gbfsV3FeedCache = gbfsV3FeedCache;
   }
 
   @Override
@@ -50,11 +70,7 @@ public class FeedProviderServiceImpl implements FeedProviderService {
 
   @Override
   public List<Operator> getOperators() {
-    return getFeedProviders()
-      .stream()
-      .map(this::mapOperator)
-      .distinct()
-      .collect(Collectors.toList());
+    return getFeedProviders().stream().map(this::mapOperator).distinct().toList();
   }
 
   private Operator mapOperator(FeedProvider feedProvider) {
@@ -94,24 +110,86 @@ public class FeedProviderServiceImpl implements FeedProviderService {
   }
 
   @Override
-  public void deleteFeedProvider(String systemId) {
-    boolean removed = feedProviderConfig
-      .getProviders()
-      .removeIf(fp -> fp.getSystemId().equals(systemId));
-    feedProviderConfig.getProviders().remove(systemId);
+  public void deleteFeedProviderBySystemId(String systemId) {
+    FeedProvider fp = getFeedProviderBySystemId(systemId);
+    if (fp == null) {
+      log.info("No feed provider with systemId {}", systemId);
+      return;
+    }
+    log.info("Delete feed provider with systemId {}", systemId);
+    feedProviderConfig.getProviders().remove(fp);
+    log.info("Clear cache from provider with systemId {}", systemId);
+    gbfsV2FeedCache.clear(fp);
+    gbfsV3FeedCache.clear(fp);
+    // stop then recreate subscriptions
+    restartFeedUpdaters();
+  }
 
-    if (!removed) {
-      throw new IllegalArgumentException("Provider non trouvé : " + systemId);
+  @Scheduled(fixedRate = 5 * 60 * 1000)
+  @PostConstruct
+  @Override
+  public void refreshFeedProviders() {
+    List<FeedProvider> ishtarProviders = this.ishtarClient.fetchGbfsProviders();
+    if (CollectionUtils.isEmpty(ishtarProviders)) {
+      log.info("No providers from ISHTAR, abort refresh");
+      return;
+    }
+    boolean update = false;
+    List<FeedProvider> providers = getFeedProviders();
+    for (FeedProvider ishtarProvider : ishtarProviders) {
+      FeedProvider existing = getFeedProviderBySystemId(ishtarProvider.getSystemId());
+      if (existing != null) {
+        if (!existing.equals(ishtarProvider)) {
+          // provider is updated
+          log.info(
+            "Update provider with systemId {} / url {}",
+            ishtarProvider.getSystemId(),
+            ishtarProvider.getUrl()
+          );
+          updateFeedProvider(ishtarProvider, existing);
+          update = true;
+          // clear previous cached data
+          gbfsV2FeedCache.clear(ishtarProvider);
+          gbfsV3FeedCache.clear(ishtarProvider);
+        }
+      } else {
+        // new provider
+        log.info(
+          "Add new provider with systemId {} / url {}",
+          ishtarProvider.getSystemId(),
+          ishtarProvider.getUrl()
+        );
+        providers.add(ishtarProvider);
+        update = true;
+      }
+    }
+    if (update) {
+      log.info("Updated providers from ISHTAR");
+      feedProviderConfig.setProviders(providers);
+      restartFeedUpdaters();
+    } else {
+      log.info("No changes in providers");
     }
   }
 
-  @Override
-  public FeedProvider findSubscriptionBySystemId(String systemId) {
-    return feedProviderConfig
-      .getProviders()
-      .stream()
-      .filter(provider -> provider.getSystemId().equals(systemId))
-      .findFirst()
-      .orElse(null);
+  private static void updateFeedProvider(FeedProvider incoming, FeedProvider existing) {
+    existing.setOperatorId(incoming.getOperatorId());
+    existing.setOperatorName(incoming.getOperatorName());
+    existing.setCodespace(incoming.getCodespace());
+    existing.setUrl(incoming.getUrl());
+    existing.setLanguage(incoming.getLanguage());
+    existing.setAuthentication(incoming.getAuthentication());
+    existing.setExcludeFeeds(incoming.getExcludeFeeds());
+    existing.setAggregate(incoming.getAggregate());
+    existing.setVehicleTypes(incoming.getVehicleTypes());
+    existing.setPricingPlans(incoming.getPricingPlans());
+    existing.setVersion(incoming.getVersion());
+  }
+
+  private void restartFeedUpdaters() {
+    // restarts subscriptions based on FeedProviderConfig bean providers
+    log.info("Restart feed updaters");
+    this.feedUpdater.stop();
+    this.feedUpdater.start();
   }
 }

@@ -73,6 +73,10 @@ public abstract class FeedCache {
     return null;
   }
 
+  protected void clear(String key) {
+    cache.removeAsync(key);
+  }
+
   protected String mergeStrings(String first, String second) {
     return String.format("%s_%s", first, second);
   }
