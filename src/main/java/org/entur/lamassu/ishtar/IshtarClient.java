@@ -3,8 +3,7 @@ package org.entur.lamassu.ishtar;
 import java.net.URI;
 import java.time.Duration;
 import java.util.*;
-import java.util.stream.Collectors;
-import org.entur.lamassu.config.feedprovider.FeedProviderMapper;
+import org.entur.lamassu.mapper.feedprovider.FeedProviderMapper;
 import org.entur.lamassu.model.provider.FeedProvider;
 import org.entur.lamassu.service.TokenService;
 import org.slf4j.Logger;
@@ -13,7 +12,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
 @Component
 public class IshtarClient {
@@ -23,9 +21,6 @@ public class IshtarClient {
   private final WebClient client;
   private final TokenService tokenService;
   private final FeedProviderMapper feedProviderMapper;
-
-  @Value("${ishtar.server.url}")
-  URI url;
 
   public IshtarClient(
     @Value("${ishtar.server.url}") URI ishtarUri,
@@ -38,7 +33,6 @@ public class IshtarClient {
   }
 
   public List<FeedProvider> fetchGbfsProviders() {
-    log.info("Ishtar url : " + url + "/gbfs-apis/for-lamassu");
     return client
       .get()
       .uri("/gbfs-apis/for-lamassu")
@@ -46,10 +40,6 @@ public class IshtarClient {
       .retrieve()
       .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
       .timeout(TIMEOUT)
-      .onErrorResume(e -> {
-        // Log l'erreur et retourne une map vide
-        return Mono.just(Collections.emptyMap());
-      })
       .blockOptional()
       .map(this::extractProvidersFromResponse)
       .orElse(Collections.emptyList());
@@ -72,7 +62,7 @@ public class IshtarClient {
         .filter(Map.class::isInstance)
         .map(Map.class::cast)
         .map(feedProviderMapper::mapFromApiResponse)
-        .collect(Collectors.toList());
+        .toList();
     } catch (Exception e) {
       throw new RuntimeException("Failed to parse providers response", e);
     }

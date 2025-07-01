@@ -38,4 +38,5 @@ public interface GBFSV3FeedCache {
     int ttl,
     TimeUnit timeUnit
   );
+  void clear(FeedProvider feedProvider);
 }
