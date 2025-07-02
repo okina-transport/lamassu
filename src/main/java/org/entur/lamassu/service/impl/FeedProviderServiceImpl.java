@@ -18,7 +18,6 @@
 
 package org.entur.lamassu.service.impl;
 
-import jakarta.annotation.PostConstruct;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -126,7 +125,6 @@ public class FeedProviderServiceImpl implements FeedProviderService {
   }
 
   @Scheduled(fixedRate = 5 * 60 * 1000)
-  @PostConstruct
   @Override
   public void refreshFeedProviders() {
     List<FeedProvider> ishtarProviders = this.ishtarClient.fetchGbfsProviders();
