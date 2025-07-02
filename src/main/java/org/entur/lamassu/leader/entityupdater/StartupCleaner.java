@@ -18,10 +18,11 @@
 
 package org.entur.lamassu.leader.entityupdater;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.entur.lamassu.cache.EntityCache;
+import org.entur.lamassu.config.feedprovider.FeedProviderConfig;
 import org.entur.lamassu.model.entities.System;
 import org.entur.lamassu.model.provider.FeedProvider;
-import org.entur.lamassu.service.FeedProviderService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -31,20 +32,20 @@ import org.springframework.stereotype.Component;
 public class StartupCleaner {
 
   private final EntityCache<System> systemCache;
-  private final FeedProviderService feedProviderService;
+  private final FeedProviderConfig feedProviderConfig;
   private final VehiclesUpdater vehiclesUpdater;
   private final StationsUpdater stationsUpdater;
   private final GbfsUpdateContinuityTracker gbfsUpdateContinuityTracker;
 
   public StartupCleaner(
     EntityCache<System> systemCache,
-    FeedProviderService feedProviderService,
+    FeedProviderConfig feedProviderConfig,
     VehiclesUpdater vehiclesUpdater,
     StationsUpdater stationsUpdater,
     GbfsUpdateContinuityTracker gbfsUpdateContinuityTracker
   ) {
     this.systemCache = systemCache;
-    this.feedProviderService = feedProviderService;
+    this.feedProviderConfig = feedProviderConfig;
     this.vehiclesUpdater = vehiclesUpdater;
     this.stationsUpdater = stationsUpdater;
     this.gbfsUpdateContinuityTracker = gbfsUpdateContinuityTracker;
@@ -55,7 +56,10 @@ public class StartupCleaner {
       .getAll()
       .stream()
       .filter(system ->
-        feedProviderService.getFeedProviderBySystemId(system.getId()) == null
+        CollectionUtils
+          .emptyIfNull(feedProviderConfig.getProviders())
+          .stream()
+          .noneMatch(fp -> fp.getSystemId().equals(system.getId()))
       )
       .forEach(system -> {
         var feedProvider = new FeedProvider();
