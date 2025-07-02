@@ -3,6 +3,7 @@ package org.entur.lamassu.service.impl;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 import org.entur.lamassu.mapper.entitymapper.SystemDiscoveryMapper;
 import org.entur.lamassu.model.discovery.SystemDiscovery;
 import org.entur.lamassu.model.provider.FeedProvider;
@@ -25,12 +26,9 @@ public class SystemDiscoveryServiceImpl implements SystemDiscoveryService {
   private final FeedProviderService feedProviderService;
   private final SystemDiscoveryMapper systemDiscoveryMapper;
 
-  private final SystemDiscovery systemDiscovery;
   private final GBFSManifest gbfsManifest;
 
   public SystemDiscoveryServiceImpl(
-    FeedProviderService feedProviderService1,
-    SystemDiscoveryMapper systemDiscoveryMapper1,
     FeedProviderService feedProviderService,
     SystemDiscoveryMapper systemDiscoveryMapper,
     @Value("${org.entur.lamassu.baseUrl}") String baseUrl,
@@ -38,15 +36,15 @@ public class SystemDiscoveryServiceImpl implements SystemDiscoveryService {
       "${fr.okina.lamassu.enableGbfsV3ToV2Mapping:false}"
     ) boolean enableGbfsV3ToV2Mapping
   ) {
-    this.feedProviderService = feedProviderService1;
-    this.systemDiscoveryMapper = systemDiscoveryMapper1;
-    this.systemDiscovery = mapSystemDiscovery(feedProviderService, systemDiscoveryMapper);
+    this.feedProviderService = feedProviderService;
+    this.systemDiscoveryMapper = systemDiscoveryMapper;
     this.gbfsManifest =
       mapGBFSManifest(feedProviderService, baseUrl, enableGbfsV3ToV2Mapping);
   }
 
   public SystemDiscovery getSystemDiscovery() {
-    return mapSystemDiscovery(feedProviderService, systemDiscoveryMapper); // Recalculé à chaque appel
+    // recomputed every time
+    return mapSystemDiscovery(feedProviderService, systemDiscoveryMapper);
   }
 
   @Override
@@ -102,7 +100,7 @@ public class SystemDiscoveryServiceImpl implements SystemDiscoveryService {
   ) {
     List<GBFSVersion> gbfsVersions = new ArrayList<>();
     if (
-      fp.getVersion() == null ||
+      StringUtils.isBlank(fp.getVersion()) ||
       fp.getVersion().startsWith("2") ||
       fp.getVersion().startsWith("3") &&
       enableGbfsV3ToV2Mapping
@@ -113,11 +111,13 @@ public class SystemDiscoveryServiceImpl implements SystemDiscoveryService {
           .withUrl(FeedUrlUtil.mapFeedUrl(baseUrl, GBFSFeedName.GBFS, fp).toString())
       );
     }
-    gbfsVersions.add(
-      new GBFSVersion()
-        .withVersion(GBFSVersion.Version._3_0)
-        .withUrl(FeedUrlUtil.mapFeedUrl(baseUrl, GBFSFeed.Name.GBFS, fp))
-    );
+    if (fp.getVersion() != null && fp.getVersion().startsWith("3")) {
+      gbfsVersions.add(
+        new GBFSVersion()
+          .withVersion(GBFSVersion.Version._3_0)
+          .withUrl(FeedUrlUtil.mapFeedUrl(baseUrl, GBFSFeed.Name.GBFS, fp))
+      );
+    }
     return gbfsVersions;
   }
 }

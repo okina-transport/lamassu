@@ -142,11 +142,9 @@ public class GBFSV3FeedController {
     LocalDateTime end = LocalDateTime.now();
     double duration = ChronoUnit.MILLIS.between(start, end) * 0.001;
     logger.info(
-      "GBFS stream playback time on a customer call : " +
-      feedProvider.getSystemId() +
-      "  : " +
-      duration +
-      "s"
+      "GBFS stream playback time on a customer call : {}  : {}s",
+            feedProvider.getSystemId(),
+      duration
     );
     return data;
   }
@@ -160,10 +158,7 @@ public class GBFSV3FeedController {
     FeedProvider feedProvider
   ) {
     try {
-      GBFSGbfs discoveryFile = (GBFSGbfs) v3FeedCache.find(
-        GBFSFeed.Name.GBFS,
-        feedProvider
-      );
+      GBFSGbfs discoveryFile = v3FeedCache.find(GBFSFeed.Name.GBFS, feedProvider);
       if (
         discoveryFile == null ||
         discoveryFile

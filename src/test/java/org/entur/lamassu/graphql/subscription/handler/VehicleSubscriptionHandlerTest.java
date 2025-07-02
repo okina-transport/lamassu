@@ -227,7 +227,7 @@ class VehicleSubscriptionHandlerTest {
     VehicleUpdateFilter filter = mock(VehicleUpdateFilter.class);
 
     // Create test vehicles for initial data
-    List<Vehicle> initialVehicles = Arrays.asList(createVehicle("initial", 59.5, 10.5));
+    List<Vehicle> initialVehicles = List.of(createVehicle("initial", 59.5, 10.5));
 
     // Mock the geo search service
     when(geoSearchService.getVehiclesInBoundingBox(bboxParams, filterParams))
@@ -297,7 +297,7 @@ class VehicleSubscriptionHandlerTest {
     VehicleUpdateFilter filter = mock(VehicleUpdateFilter.class);
 
     // Create test vehicles for initial data
-    List<Vehicle> initialVehicles = Arrays.asList(createVehicle("initial", 59.5, 10.5));
+    List<Vehicle> initialVehicles = List.of(createVehicle("initial", 59.5, 10.5));
 
     // Mock the geo search service
     when(geoSearchService.getVehiclesInBoundingBox(bboxParams, filterParams))
@@ -407,7 +407,7 @@ class VehicleSubscriptionHandlerTest {
     VehicleUpdateFilter filter = mock(VehicleUpdateFilter.class);
 
     // Create a large number of test vehicles for initial data
-    List<Vehicle> initialVehicles = Arrays.asList(createVehicle("initial", 59.5, 10.5));
+    List<Vehicle> initialVehicles = List.of(createVehicle("initial", 59.5, 10.5));
 
     // Mock the geo search service
     when(geoSearchService.getVehiclesInBoundingBox(bboxParams, filterParams))

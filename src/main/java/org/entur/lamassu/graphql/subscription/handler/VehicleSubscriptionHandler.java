@@ -41,7 +41,7 @@ import org.springframework.stereotype.Component;
 public class VehicleSubscriptionHandler
   extends EntitySubscriptionHandler<Vehicle, VehicleUpdate> {
 
-  private static Logger logger = LoggerFactory.getLogger(
+  private static final Logger logger = LoggerFactory.getLogger(
     VehicleSubscriptionHandler.class
   );
 

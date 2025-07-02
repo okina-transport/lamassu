@@ -39,7 +39,7 @@ public class DiscoveryFeedMapper extends AbstractFeedMapper<GBFS> {
   @Value("${org.entur.lamassu.baseUrl}")
   private String baseUrl;
 
-  private static String targetGbfsVersion = "2.3";
+  private static final String TARGET_GBFS_VERSION = "2.3";
 
   private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -55,7 +55,7 @@ public class DiscoveryFeedMapper extends AbstractFeedMapper<GBFS> {
     Map<String, GBFSFeeds> dataWrapper = new HashMap<>();
     mapped.setLastUpdated(source.getLastUpdated());
     mapped.setTtl(source.getTtl());
-    mapped.setVersion(targetGbfsVersion);
+    mapped.setVersion(TARGET_GBFS_VERSION);
 
     String sourceLanguageCode;
     if (source.getFeedsData().containsKey(feedProvider.getLanguage())) {

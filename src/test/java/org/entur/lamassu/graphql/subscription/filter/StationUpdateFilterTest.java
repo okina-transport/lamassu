@@ -22,7 +22,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.UnaryOperator;
 import org.entur.lamassu.graphql.subscription.model.StationUpdate;
@@ -173,7 +172,7 @@ class StationUpdateFilterTest {
       null, // systems
       null, // operators
       null, // count
-      Arrays.asList(FormFactor.BICYCLE), // availableFormFactors
+      List.of(FormFactor.BICYCLE), // availableFormFactors
       null // availablePropulsionTypes
     );
 
@@ -218,7 +217,7 @@ class StationUpdateFilterTest {
       null, // operators
       null, // count
       null, // availableFormFactors
-      Arrays.asList(PropulsionType.ELECTRIC) // availablePropulsionTypes
+      List.of(PropulsionType.ELECTRIC) // availablePropulsionTypes
     );
 
     // Create range parameters
@@ -356,7 +355,7 @@ class StationUpdateFilterTest {
       null, // systems
       null, // operators
       null, // count
-      Arrays.asList(FormFactor.BICYCLE), // availableFormFactors
+      List.of(FormFactor.BICYCLE), // availableFormFactors
       null // availablePropulsionTypes
     );
 

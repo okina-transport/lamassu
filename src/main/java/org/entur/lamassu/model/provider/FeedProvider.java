@@ -18,6 +18,7 @@
 
 package org.entur.lamassu.model.provider;
 
+import java.time.Instant;
 import java.util.List;
 import lombok.Data;
 import org.mobilitydata.gbfs.v2_3.gbfs.GBFSFeedName;
@@ -39,4 +40,6 @@ public class FeedProvider {
   private List<GBFSVehicleType> vehicleTypes;
   private List<GBFSPlan> pricingPlans;
   private String version;
+  private Instant lastSuccessfulProducerCall;
+  private Instant lastFailedProducerCall;
 }

@@ -204,8 +204,7 @@ public class Vehicle implements LocationEntity, SystemEntity {
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
-    if (!(o instanceof Vehicle)) return false;
-    Vehicle vehicle = (Vehicle) o;
+    if (!(o instanceof Vehicle vehicle)) return false;
     return getId().equals(vehicle.getId());
   }
 

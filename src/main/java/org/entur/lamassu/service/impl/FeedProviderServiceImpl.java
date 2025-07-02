@@ -182,6 +182,8 @@ public class FeedProviderServiceImpl implements FeedProviderService {
     existing.setVehicleTypes(incoming.getVehicleTypes());
     existing.setPricingPlans(incoming.getPricingPlans());
     existing.setVersion(incoming.getVersion());
+    existing.setLastSuccessfulProducerCall(null);
+    existing.setLastFailedProducerCall(null);
   }
 
   private void restartFeedUpdaters() {

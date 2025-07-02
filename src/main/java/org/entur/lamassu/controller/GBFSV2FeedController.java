@@ -21,6 +21,7 @@ package org.entur.lamassu.controller;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Collection;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
 import org.entur.lamassu.cache.GBFSV2FeedCache;
@@ -138,11 +139,9 @@ public class GBFSV2FeedController {
     LocalDateTime end = LocalDateTime.now();
     double duration = ChronoUnit.MILLIS.between(start, end) * 0.001;
     logger.info(
-      "GBFS stream playback time on a customer call : " +
-      feedProvider.getSystemId() +
-      "  : " +
-      duration +
-      "s"
+      "GBFS stream playback time on a customer call : {}  : {}s",
+            feedProvider.getSystemId(),
+            duration
     );
     return data;
   }
@@ -156,14 +155,15 @@ public class GBFSV2FeedController {
     FeedProvider feedProvider
   ) {
     try {
-      GBFS discoveryFile = (GBFS) feedCache.find(GBFSFeedName.GBFS, feedProvider);
+      GBFS discoveryFile = feedCache.find(GBFSFeedName.GBFS, feedProvider);
       if (
         discoveryFile == null ||
-        ((GBFS) discoveryFile).getFeedsData()
+        discoveryFile
+          .getFeedsData()
           .values()
           .stream()
           .map(GBFSFeeds::getFeeds)
-          .flatMap(list -> list.stream())
+          .flatMap(Collection::stream)
           .map(GBFSFeed::getName)
           .anyMatch(name -> name.equals(feedName))
       ) {

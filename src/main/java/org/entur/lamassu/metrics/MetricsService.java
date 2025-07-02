@@ -19,14 +19,17 @@
 package org.entur.lamassu.metrics;
 
 import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.ImmutableTag;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.entur.gbfs.validation.model.ValidationResult;
 import org.entur.lamassu.model.provider.FeedProvider;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -172,5 +175,18 @@ public class MetricsService {
         }
       })
       .reduce(0, Integer::sum);
+  }
+
+  public void registerIncomingData(
+    @Nullable Integer httpStatus,
+    URI uri,
+    String codespace
+  ) {
+    List<Tag> tags = List.of(
+      new ImmutableTag("dataset", codespace.toUpperCase()),
+      new ImmutableTag("http_status", httpStatus == null ? "" : httpStatus.toString()),
+      new ImmutableTag("producer_url", uri.toString())
+    );
+    meterRegistry.counter("app.lamassu.incoming.data.monitoring", tags).increment();
   }
 }

@@ -49,7 +49,7 @@ public class GeofencingZones implements Entity {
 
   public static class FeatureCollection implements Serializable {
 
-    private String type = "FeatureCollection";
+    private final String type = "FeatureCollection";
     private List<Feature> features;
 
     public String getType() {
@@ -67,7 +67,7 @@ public class GeofencingZones implements Entity {
 
   public static class Feature implements Serializable {
 
-    private String type = "Feature";
+    private final String type = "Feature";
     private MultiPolygon geometry;
     private Properties properties;
 

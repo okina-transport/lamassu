@@ -222,7 +222,7 @@ class StationSubscriptionHandlerTest {
     StationUpdateFilter filter = mock(StationUpdateFilter.class);
 
     // Create initial stations for the subscription
-    List<Station> initialStations = Arrays.asList(createStation("1", 59.92, 10.75));
+    List<Station> initialStations = List.of(createStation("1", 59.92, 10.75));
 
     // Mock the geo search service
     when(geoSearchService.getStationsInBoundingBox(bboxParams, filterParams))
@@ -288,7 +288,7 @@ class StationSubscriptionHandlerTest {
     StationUpdateFilter filter = mock(StationUpdateFilter.class);
 
     // Create initial stations for the subscription
-    List<Station> initialStations = Arrays.asList(createStation("1", 59.92, 10.75));
+    List<Station> initialStations = List.of(createStation("1", 59.92, 10.75));
 
     // Mock the geo search service
     when(geoSearchService.getStationsInBoundingBox(bboxParams, filterParams))
