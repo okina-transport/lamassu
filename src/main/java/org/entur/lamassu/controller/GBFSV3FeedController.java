@@ -143,7 +143,7 @@ public class GBFSV3FeedController {
     double duration = ChronoUnit.MILLIS.between(start, end) * 0.001;
     logger.info(
       "GBFS stream playback time on a customer call : {}  : {}s",
-            feedProvider.getSystemId(),
+      feedProvider.getSystemId(),
       duration
     );
     return data;
