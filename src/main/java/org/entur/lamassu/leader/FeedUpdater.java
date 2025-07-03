@@ -71,6 +71,7 @@ public class FeedUpdater {
   private ForkJoinPool updaterThreadPool;
   private final RListMultimap<String, ValidationResult> validationResultsCache;
   private final StartupCleaner startupCleaner;
+  private final RegisterIncomingDataEventHandler registerIncomingDataEventHandler;
 
   @Value("${org.entur.lamassu.enableValidation:false}")
   private boolean enableValidation;
@@ -95,7 +96,8 @@ public class FeedUpdater {
     RListMultimap<String, ValidationResult> validationResultsCache,
     RBucket<Boolean> cacheReady,
     MetricsService metricsService,
-    StartupCleaner startupCleaner
+    StartupCleaner startupCleaner,
+    RegisterIncomingDataEventHandler registerIncomingDataEventHandler
   ) {
     this.feedProviderConfig = feedProviderConfig;
     this.gbfsV2DeliveryMapper = gbfsV2DeliveryMapper;
@@ -107,6 +109,7 @@ public class FeedUpdater {
     this.cacheReady = cacheReady;
     this.metricsService = metricsService;
     this.startupCleaner = startupCleaner;
+    this.registerIncomingDataEventHandler = registerIncomingDataEventHandler;
   }
 
   public void start() {
@@ -144,7 +147,8 @@ public class FeedUpdater {
         ? feedProvider.getAuthentication().getRequestAuthenticator()
         : null,
       null,
-      enableValidation
+      enableValidation,
+      registerIncomingDataEventHandler
     );
 
     var interceptor = new LoggingSubscriptionUpdateInterceptor(feedProvider);
@@ -278,13 +282,10 @@ public class FeedUpdater {
     LocalDateTime end = LocalDateTime.now();
     double duration = ChronoUnit.MILLIS.between(start, end) * 0.001;
     logger.info(
-      "GBFS data recovery time : " +
-      feedProvider.getSystemId() +
-      " iteration " +
-      iterationNb +
-      " : " +
-      duration +
-      "s"
+      "GBFS data recovery time : {} iteration {} : {}s",
+      feedProvider.getSystemId(),
+      iterationNb,
+      duration
     );
     iterationNb++;
   }
@@ -302,13 +303,10 @@ public class FeedUpdater {
     LocalDateTime end = LocalDateTime.now();
     double duration = ChronoUnit.MILLIS.between(start, end) * 0.001;
     logger.info(
-      "GBFS data recovery time : " +
-      feedProvider.getSystemId() +
-      " iteration " +
-      iterationNb +
-      " : " +
-      duration +
-      "s"
+      "GBFS data recovery time : {} iteration {} : {}s",
+      feedProvider.getSystemId(),
+      iterationNb,
+      duration
     );
     iterationNb++;
   }

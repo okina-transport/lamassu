@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class GbfsUpdateContinuityTracker {
 
-  private static Logger logger = LoggerFactory.getLogger(
+  private static final Logger logger = LoggerFactory.getLogger(
     GbfsUpdateContinuityTracker.class
   );
 

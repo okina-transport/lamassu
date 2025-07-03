@@ -52,11 +52,7 @@ public class SpatialIndexIdFilter {
       return false;
     }
 
-    if (!filters.getIncludeDisabled() && parsedId.getDisabled()) {
-      return false;
-    }
-
-    return true;
+    return filters.getIncludeDisabled() || !parsedId.getDisabled();
   }
 
   public static boolean filterStation(
@@ -94,18 +90,14 @@ public class SpatialIndexIdFilter {
       return false;
     }
 
-    if (
-      filters.getAvailablePropulsionTypes() != null &&
+    return (
+      filters.getAvailablePropulsionTypes() == null ||
       filters
         .getAvailablePropulsionTypes()
         .stream()
-        .noneMatch(propulsionType ->
+        .anyMatch(propulsionType ->
           parsedId.getAvailablePropulsionTypes().contains(propulsionType)
         )
-    ) {
-      return false;
-    }
-
-    return true;
+    );
   }
 }

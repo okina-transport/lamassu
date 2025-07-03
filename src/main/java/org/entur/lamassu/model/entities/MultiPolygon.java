@@ -20,11 +20,10 @@ package org.entur.lamassu.model.entities;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class MultiPolygon implements Serializable {
 
-  private String type = "MultiPolygon";
+  private final String type = "MultiPolygon";
   private List<List<List<List<Double>>>> coordinates;
 
   public String getType() {
@@ -52,11 +51,11 @@ public class MultiPolygon implements Serializable {
               .stream()
               .map(lngLatAlt -> List.of(lngLatAlt.getLongitude(), lngLatAlt.getLatitude())
               )
-              .collect(Collectors.toList())
+              .toList()
           )
-          .collect(Collectors.toList())
+          .toList()
       )
-      .collect(Collectors.toList());
+      .toList();
     mapped.setCoordinates(mappedCoordinates);
 
     return mapped;
