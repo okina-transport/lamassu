@@ -5,6 +5,10 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Set;
+
+import static org.entur.lamassu.metrics.MetricsService.METRIC_INCOMING_DATA_MONITORING;
+
 @RestController
 @Profile("leader & !test")
 public class MetricsController {
@@ -17,6 +21,8 @@ public class MetricsController {
 
   @GetMapping("/scrape")
   public String getMetrics() {
-    return meterRegistry.scrape();
+    // to filter by metric name, you must replace dots "." with underscores "_"
+    // no need to add "_total" suffix
+    return meterRegistry.scrape("text/plain;charset=UTF-8", Set.of(METRIC_INCOMING_DATA_MONITORING.replace('.', '_')));
   }
 }

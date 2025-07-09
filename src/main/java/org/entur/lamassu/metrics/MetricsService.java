@@ -50,6 +50,7 @@ public class MetricsService {
 
   public static final String ENTITY_VEHICLE = "vehicle";
   public static final String ENTITY_STATION = "station";
+  public static final String METRIC_INCOMING_DATA_MONITORING = "app.lamassu.incoming.data.monitoring";
 
   private final MeterRegistry meterRegistry;
 
@@ -187,6 +188,6 @@ public class MetricsService {
       new ImmutableTag("http_status", httpStatus == null ? "" : httpStatus.toString()),
       new ImmutableTag("producer_url", uri.toString())
     );
-    meterRegistry.counter("app.lamassu.incoming.data.monitoring", tags).increment();
+    meterRegistry.counter(METRIC_INCOMING_DATA_MONITORING, tags).increment();
   }
 }
