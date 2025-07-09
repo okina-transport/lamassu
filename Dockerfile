@@ -4,4 +4,4 @@ ARG JAR_FILE
 COPY ${JAR_FILE} lamassu.jar
 
 EXPOSE 8099
-CMD java "$JAVA_OPTIONS" -jar /lamassu.jar
+CMD java $JAVA_OPTIONS -jar /lamassu.jar
