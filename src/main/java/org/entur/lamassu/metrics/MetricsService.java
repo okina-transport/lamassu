@@ -50,7 +50,8 @@ public class MetricsService {
 
   public static final String ENTITY_VEHICLE = "vehicle";
   public static final String ENTITY_STATION = "station";
-  public static final String METRIC_INCOMING_DATA_MONITORING = "app.lamassu.incoming.data.monitoring";
+  public static final String METRIC_INCOMING_DATA_MONITORING =
+    "app.lamassu.incoming.data.monitoring";
 
   private final MeterRegistry meterRegistry;
 
