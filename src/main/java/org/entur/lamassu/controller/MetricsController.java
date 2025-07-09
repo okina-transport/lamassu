@@ -1,12 +1,11 @@
 package org.entur.lamassu.controller;
 
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
-import jakarta.ws.rs.Produces;
 import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
 
-@RestController
+@Controller
 @Profile("leader & !test")
 public class MetricsController {
 
@@ -16,8 +15,7 @@ public class MetricsController {
     this.meterRegistry = meterRegistry;
   }
 
-  @GetMapping("/scrape")
-  @Produces("text/plain")
+  @GetMapping(value = "/scrape", produces = "text/plain")
   public String getMetrics() {
     return meterRegistry.scrape();
   }
