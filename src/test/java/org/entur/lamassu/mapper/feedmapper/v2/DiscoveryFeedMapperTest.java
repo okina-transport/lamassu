@@ -32,7 +32,6 @@ import org.mobilitydata.gbfs.v2_3.gbfs.GBFSFeeds;
 import org.mobilitydata.gbfs.v2_3.system_pricing_plans.GBFSPerMinPricing;
 import org.mobilitydata.gbfs.v2_3.system_pricing_plans.GBFSPlan;
 import org.mobilitydata.gbfs.v2_3.vehicle_types.GBFSVehicleType;
-import org.springframework.test.util.ReflectionTestUtils;
 
 class DiscoveryFeedMapperTest {
 
@@ -41,7 +40,6 @@ class DiscoveryFeedMapperTest {
   @BeforeEach
   void prepare() {
     mapper = new DiscoveryFeedMapper();
-    ReflectionTestUtils.setField(mapper, "targetGbfsVersion", "2.2");
   }
 
   @Test
