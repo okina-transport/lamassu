@@ -2,7 +2,10 @@ package org.entur.lamassu.leader;
 
 import java.net.URI;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import org.entur.gbfs.http.GBFSHttpClientEventHandler;
 import org.entur.lamassu.config.feedprovider.FeedProviderConfig;
 import org.entur.lamassu.metrics.MetricsService;
@@ -10,11 +13,13 @@ import org.entur.lamassu.model.provider.FeedProvider;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 public class RegisterIncomingDataEventHandler implements GBFSHttpClientEventHandler {
 
   private final MetricsService metricsService;
   private final FeedProviderConfig feedProviderConfig;
+  private final Map<URI, URI> feedURItoDiscoveryURI = new HashMap<>();
 
   public RegisterIncomingDataEventHandler(
     MetricsService metricsService,
@@ -34,17 +39,39 @@ public class RegisterIncomingDataEventHandler implements GBFSHttpClientEventHand
     onGetData(null, uri);
   }
 
-  private Optional<FeedProvider> findFeedProviderByUrl(URI uri) {
+  @Override
+  public void registerFeedUri(URI feedUri, URI discoveryUri) {
+    feedURItoDiscoveryURI.put(feedUri, discoveryUri);
+  }
+
+  private Optional<FeedProvider> findFeedProviderByUrl(URI discoveryUri) {
+    final String feedProviderURI = discoveryUri.toString();
     return this.feedProviderConfig.getProviders()
       .stream()
-      .filter(fp -> fp.getUrl().equals(uri.toString()))
+      .filter(fp -> fp.getUrl().equals(feedProviderURI))
       .findFirst();
   }
 
   private void onGetData(@Nullable Integer httpStatus, URI uri) {
-    Optional<FeedProvider> feedProvider = this.findFeedProviderByUrl(uri);
+    URI discoveryUri;
+    URI feedUri;
+    if (feedURItoDiscoveryURI.containsKey(uri)) {
+      discoveryUri = feedURItoDiscoveryURI.get(uri);
+      feedUri = uri;
+    } else {
+      feedUri = null;
+      discoveryUri = uri;
+    }
+    if (discoveryUri == null) {
+      log.error("Unable to find discovery URI for URI: {}", uri);
+      return;
+    }
+    Optional<FeedProvider> feedProvider = this.findFeedProviderByUrl(discoveryUri);
     feedProvider.ifPresent(fp -> {
-      metricsService.registerIncomingData(httpStatus, uri, fp.getCodespace());
+      metricsService.registerIncomingData(httpStatus, discoveryUri, fp.getCodespace());
+      if (feedUri != null) {
+        metricsService.registerIncomingData(httpStatus, feedUri, fp.getCodespace());
+      }
       if (httpStatus != null && httpStatus >= 200 && httpStatus < 300) {
         fp.setLastSuccessfulProducerCall(Instant.now());
       } else {
