@@ -21,12 +21,12 @@
         <entur.ror.helpers.version>1.101</entur.ror.helpers.version>
         <redisson.version>3.50.0</redisson.version>
         <embedded-redis.version>0.9.1</embedded-redis.version>
-        <okhttp.version>4.12.0</okhttp.version>
+        <okhttp.version>5.1.0</okhttp.version>
         <kryo.version>5.6.2</kryo.version>
-        <jackson.version>2.19.0</jackson.version>
+        <jackson.version>2.19.1</jackson.version>
         <gbfs-loader-java.version>4.1.0-mobi-iti</gbfs-loader-java.version>
-        <gbfs-validator-java.version>2.0.33</gbfs-validator-java.version>
-        <gbfs-mapper-java.version>2.0.29</gbfs-mapper-java.version>
+        <gbfs-validator-java.version>2.0.36</gbfs-validator-java.version>
+        <gbfs-mapper-java.version>2.0.42</gbfs-mapper-java.version>
         <prettier-java.version>2.1.0</prettier-java.version>
         <prettier-maven-plugin.version>0.22</prettier-maven-plugin.version>
         <plugin.prettier.goal>write</plugin.prettier.goal>
@@ -81,10 +81,12 @@
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-core</artifactId>
+            <version>1.15.2</version>
         </dependency>
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
+            <version>1.15.2</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -139,6 +141,7 @@
         <dependency>
             <groupId>net.logstash.logback</groupId>
             <artifactId>logstash-logback-encoder</artifactId>
+            <version>8.1</version>
         </dependency>
         <dependency>
             <groupId>org.codehaus.janino</groupId>
@@ -162,6 +165,7 @@
         <dependency>
             <groupId>org.springframework.graphql</groupId>
             <artifactId>spring-graphql-test</artifactId>
+            <version>1.4.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -191,6 +195,7 @@
         <dependency>
             <groupId>org.junit.vintage</groupId>
             <artifactId>junit-vintage-engine</artifactId>
+            <version>5.13.3</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -202,34 +207,35 @@
         <dependency>
             <groupId>io.projectreactor</groupId>
             <artifactId>reactor-test</artifactId>
+            <version>3.7.8</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-resolver-dns-native-macos</artifactId>
             <classifier>osx-aarch_64</classifier>
-            <version>4.2.1.Final</version>
+            <version>4.2.3.Final</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.mapbox.mapboxsdk</groupId>
             <artifactId>mapbox-sdk-geojson</artifactId>
-            <version>5.8.0</version>
+            <version>5.9.0-alpha.1</version>
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-main</artifactId>
-            <version>33.0</version>
+            <version>33.1</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-collections4</artifactId>
-            <version>4.4</version>
+            <version>4.5.0</version>
         </dependency>
         <dependency>
             <groupId>io.swagger.core.v3</groupId>
             <artifactId>swagger-annotations</artifactId>
-            <version>2.2.15</version>
+            <version>2.2.34</version>
         </dependency>
         <!-- Jersey -->
         <dependency>
