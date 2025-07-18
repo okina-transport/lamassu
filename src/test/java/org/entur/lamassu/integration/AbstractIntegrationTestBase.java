@@ -2,7 +2,6 @@ package org.entur.lamassu.integration;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -15,8 +14,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.kafka.test.EmbeddedKafkaBroker;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -24,6 +24,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ActiveProfiles({ "test", "leader" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @ExtendWith(SpringExtension.class)
+@EmbeddedKafka(partitions = 1, topics = { "tr_in_subscription_monitoring" })
 @SpringBootTest(
   classes = TestLamassuApplication.class,
   properties = "scheduling.enabled=false",
@@ -31,11 +32,14 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 )
 public abstract class AbstractIntegrationTestBase {
 
-  @Autowired
-  private LeaderSingletonService leaderSingletonService;
-
   private static MockWebServer gbfsProvidersMockWebServer;
   private static MockWebServer ishtarMockServer;
+
+  @Autowired
+  protected EmbeddedKafkaBroker broker;
+
+  @Autowired
+  private LeaderSingletonService leaderSingletonService;
 
   @BeforeAll
   public static void setUp() throws IOException {
@@ -46,6 +50,40 @@ public abstract class AbstractIntegrationTestBase {
     ishtarMockServer = new MockWebServer();
     ishtarMockServer.setDispatcher(new IshtarServerDispatcher());
     ishtarMockServer.start(8881);
+  }
+
+  @NotNull
+  private static MockResponse getMockResponse(String file) {
+    return new MockResponse()
+      .setResponseCode(200)
+      .setHeader("Content-Type", "application/json")
+      .setBody(getFileFromResource(file));
+  }
+
+  @AfterAll
+  public static void tearDown() throws IOException {
+    gbfsProvidersMockWebServer.shutdown();
+    ishtarMockServer.shutdown();
+  }
+
+  private static String getFileFromResource(String fileName) {
+    try {
+      InputStream inputStream =
+        AbstractIntegrationTestBase.class.getClassLoader().getResourceAsStream(fileName);
+      if (inputStream == null) {
+        throw new IllegalArgumentException("file not found! " + fileName);
+      }
+      return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @BeforeEach
+  public void heartbeat() throws InterruptedException {
+    Thread.sleep(1000);
+    leaderSingletonService.update();
+    Thread.sleep(1000);
   }
 
   public static class GBFSDispatcher extends okhttp3.mockwebserver.Dispatcher {
@@ -110,40 +148,6 @@ public abstract class AbstractIntegrationTestBase {
           "Unexpected request path: " + recordedRequest.getPath()
         );
       };
-    }
-  }
-
-  @NotNull
-  private static MockResponse getMockResponse(String file) {
-    return new MockResponse()
-      .setResponseCode(200)
-      .setHeader("Content-Type", "application/json")
-      .setBody(getFileFromResource(file));
-  }
-
-  @AfterAll
-  public static void tearDown() throws IOException {
-    gbfsProvidersMockWebServer.shutdown();
-    ishtarMockServer.shutdown();
-  }
-
-  @BeforeEach
-  public void heartbeat() throws InterruptedException {
-    Thread.sleep(1000);
-    leaderSingletonService.update();
-    Thread.sleep(1000);
-  }
-
-  private static String getFileFromResource(String fileName) {
-    try {
-      InputStream inputStream =
-        AbstractIntegrationTestBase.class.getClassLoader().getResourceAsStream(fileName);
-      if (inputStream == null) {
-        throw new IllegalArgumentException("file not found! " + fileName);
-      }
-      return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
     }
   }
 }
