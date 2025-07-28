@@ -41,6 +41,7 @@ import org.entur.lamassu.mapper.feedmapper.v3.GbfsV3DeliveryMapper;
 import org.entur.lamassu.metrics.MetricsService;
 import org.entur.lamassu.model.provider.FeedProvider;
 import org.redisson.api.RBucket;
+import org.redisson.api.RList;
 import org.redisson.api.RListMultimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -255,7 +256,7 @@ public class FeedUpdater {
     String systemId,
     ValidationResult validationResult
   ) {
-    var validationResults = validationResultsCache.get(systemId);
+    RList<ValidationResult> validationResults = validationResultsCache.get(systemId);
     var mostRecent = CollectionUtils.isEmpty(validationResults)
       ? null
       : validationResults.getLast();
