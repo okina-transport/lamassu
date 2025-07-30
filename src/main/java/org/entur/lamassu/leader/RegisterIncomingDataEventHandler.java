@@ -10,6 +10,7 @@ import org.entur.gbfs.http.GBFSHttpClientEventHandler;
 import org.entur.lamassu.config.feedprovider.FeedProviderConfig;
 import org.entur.lamassu.metrics.MetricsService;
 import org.entur.lamassu.model.provider.FeedProvider;
+import org.entur.lamassu.service.SubscriptionMonitoringService;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
@@ -18,14 +19,17 @@ import org.springframework.stereotype.Component;
 public class RegisterIncomingDataEventHandler implements GBFSHttpClientEventHandler {
 
   private final MetricsService metricsService;
+  private final SubscriptionMonitoringService subscriptionMonitoringService;
   private final FeedProviderConfig feedProviderConfig;
   private final Map<URI, URI> feedURItoDiscoveryURI = new HashMap<>();
 
   public RegisterIncomingDataEventHandler(
     MetricsService metricsService,
+    SubscriptionMonitoringService subscriptionMonitoringService,
     FeedProviderConfig feedProviderConfig
   ) {
     this.metricsService = metricsService;
+    this.subscriptionMonitoringService = subscriptionMonitoringService;
     this.feedProviderConfig = feedProviderConfig;
   }
 
@@ -69,8 +73,18 @@ public class RegisterIncomingDataEventHandler implements GBFSHttpClientEventHand
     Optional<FeedProvider> feedProvider = this.findFeedProviderByUrl(discoveryUri);
     feedProvider.ifPresent(fp -> {
       metricsService.registerIncomingData(httpStatus, discoveryUri, fp.getOperatorName());
+      subscriptionMonitoringService.sendSubscriptionMonitoringData(
+        httpStatus,
+        fp,
+        discoveryUri
+      );
       if (feedUri != null) {
         metricsService.registerIncomingData(httpStatus, feedUri, fp.getOperatorName());
+        subscriptionMonitoringService.sendSubscriptionMonitoringData(
+          httpStatus,
+          fp,
+          feedUri
+        );
       }
       if (httpStatus != null && httpStatus >= 200 && httpStatus < 300) {
         fp.setLastSuccessfulProducerCall(Instant.now());
