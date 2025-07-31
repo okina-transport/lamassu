@@ -143,6 +143,14 @@ class IdBuilderTest {
         .withValue("Another.Valid@String:/_-")
         .build();
     });
+    assertDoesNotThrow(() -> {
+      IdBuilder
+        .newInstance()
+        .withCodespace("AAA")
+        .withType("Vehicle")
+        .withValue("5_Boulevard_de_Maréchal_Foch")
+        .build();
+    });
   }
 
   @Test

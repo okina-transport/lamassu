@@ -101,7 +101,7 @@ public class DefaultIdValidator implements IdValidator {
     if (endIndex > startIndex) {
       for (int i = startIndex; i < endIndex; i++) {
         char c = value.charAt(i);
-        if (!isValueCharacter(c)) {
+        if (isValueCharacter(c)) {
           return false;
         }
       }
@@ -111,6 +111,6 @@ public class DefaultIdValidator implements IdValidator {
   }
 
   protected static boolean isValueCharacter(char c) {
-    return c >= 0x21 && c <= 0x7E; // Not in the ASCII printable range
+    return Character.isISOControl(c) || c == ' ' || c == '!';
   }
 }
