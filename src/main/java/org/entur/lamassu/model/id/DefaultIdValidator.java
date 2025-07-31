@@ -111,6 +111,6 @@ public class DefaultIdValidator implements IdValidator {
   }
 
   protected static boolean isValueCharacter(char c) {
-    return c >= 0x21 && c <= 0x7E; // Not in the ASCII printable range
+    return c >= 0x21 && c <= 0x7E || Character.isLetter(c);
   }
 }
