@@ -34,5 +34,6 @@ class IdMappersTest {
   void testMapId() {
     Assertions.assertEquals("TST:Type:1", IdMappers.mapId("TST", "Type", "TST:Type:1"));
     Assertions.assertEquals("TST:Type:1", IdMappers.mapId("TST", "Type", "1"));
+    Assertions.assertEquals("TST:Type:BikeRack Lavoisier", IdMappers.mapId("TST", "Type", "BikeRack Lavoisier"));
   }
 }
