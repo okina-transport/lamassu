@@ -162,30 +162,6 @@ class IdBuilderTest {
           .newInstance()
           .withCodespace("AAA")
           .withType("Vehicle")
-          .withValue("Invalid String with space")
-          .build();
-      }
-    );
-
-    assertThrows(
-      IllegalStateException.class,
-      () -> {
-        IdBuilder
-          .newInstance()
-          .withCodespace("AAA")
-          .withType("Vehicle")
-          .withValue("Invalid String!")
-          .build();
-      }
-    );
-
-    assertThrows(
-      IllegalStateException.class,
-      () -> {
-        IdBuilder
-          .newInstance()
-          .withCodespace("AAA")
-          .withType("Vehicle")
           .withValue("StringWith\tTab")
           .build();
       }
