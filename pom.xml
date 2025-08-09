@@ -5,7 +5,7 @@
     <parent>
         <groupId>com.okina.springboot</groupId>
         <artifactId>superpom</artifactId>
-        <version>2.0.4-SNAPSHOT</version>
+        <version>2.0.7-SNAPSHOT</version>
     </parent>
     <groupId>org.entur</groupId>
     <artifactId>lamassu</artifactId>
@@ -19,19 +19,21 @@
         <lamassu.serialization.version.id>26</lamassu.serialization.version.id>
 
         <entur.ror.helpers.version>1.101</entur.ror.helpers.version>
-        <redisson.version>3.50.0</redisson.version>
+        <redisson.version>3.51.0</redisson.version>
         <embedded-redis.version>0.9.1</embedded-redis.version>
         <okhttp.version>5.1.0</okhttp.version>
         <kryo.version>5.6.2</kryo.version>
         <jackson.version>2.19.2</jackson.version>
         <gbfs-loader-java.version>4.1.0-mobi-iti</gbfs-loader-java.version>
-        <gbfs-validator-java.version>2.0.36</gbfs-validator-java.version>
+        <gbfs-validator-java.version>2.0.44</gbfs-validator-java.version>
         <gbfs-mapper-java.version>2.0.44-mobi-iti</gbfs-mapper-java.version>
         <prettier-java.version>2.1.0</prettier-java.version>
         <prettier-maven-plugin.version>0.22</prettier-maven-plugin.version>
         <plugin.prettier.goal>write</plugin.prettier.goal>
-        <jersey.version>3.1.10</jersey.version>
+        <jersey.version>3.1.11</jersey.version>
         <lombok.version>1.18.38</lombok.version>
+        <micrometer.version>1.15.3</micrometer.version>
+        <spring.kafka.version>3.3.9</spring.kafka.version>
     </properties>
 
     <distributionManagement>
@@ -81,12 +83,12 @@
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-core</artifactId>
-            <version>1.15.2</version>
+            <version>${micrometer.version}</version>
         </dependency>
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
-            <version>1.15.2</version>
+            <version>${micrometer.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -207,14 +209,14 @@
         <dependency>
             <groupId>io.projectreactor</groupId>
             <artifactId>reactor-test</artifactId>
-            <version>3.7.8</version>
+            <version>3.7.9</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-resolver-dns-native-macos</artifactId>
             <classifier>osx-aarch_64</classifier>
-            <version>4.2.3.Final</version>
+            <version>4.2.4.Final</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -235,7 +237,7 @@
         <dependency>
             <groupId>io.swagger.core.v3</groupId>
             <artifactId>swagger-annotations</artifactId>
-            <version>2.2.35</version>
+            <version>2.2.36</version>
         </dependency>
         <!-- Jersey -->
         <dependency>
@@ -255,10 +257,12 @@
         <dependency>
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka</artifactId>
+            <version>${spring.kafka.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka-test</artifactId>
+            <version>${spring.kafka.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
