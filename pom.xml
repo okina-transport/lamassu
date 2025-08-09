@@ -5,11 +5,11 @@
     <parent>
         <groupId>com.okina.springboot</groupId>
         <artifactId>superpom</artifactId>
-        <version>2.0.5-SNAPSHOT</version>
+        <version>2.0.4-SNAPSHOT</version>
     </parent>
     <groupId>org.entur</groupId>
     <artifactId>lamassu</artifactId>
-    <version>1.1.0-mobi-iti-SNAPSHOT</version>
+    <version>1.1.1-mobi-iti-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>lamassu</name>
@@ -25,8 +25,8 @@
         <kryo.version>5.6.2</kryo.version>
         <jackson.version>2.19.2</jackson.version>
         <gbfs-loader-java.version>4.1.0-mobi-iti</gbfs-loader-java.version>
-        <gbfs-validator-java.version>2.0.38</gbfs-validator-java.version>
-        <gbfs-mapper-java.version>2.0.44</gbfs-mapper-java.version>
+        <gbfs-validator-java.version>2.0.36</gbfs-validator-java.version>
+        <gbfs-mapper-java.version>2.0.44-mobi-iti</gbfs-mapper-java.version>
         <prettier-java.version>2.1.0</prettier-java.version>
         <prettier-maven-plugin.version>0.22</prettier-maven-plugin.version>
         <plugin.prettier.goal>write</plugin.prettier.goal>
@@ -66,7 +66,7 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.entur.gbfs</groupId>
+            <groupId>com.okina</groupId>
             <artifactId>gbfs-mapper-java</artifactId>
             <version>${gbfs-mapper-java.version}</version>
         </dependency>
