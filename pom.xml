@@ -34,6 +34,7 @@
         <lombok.version>1.18.38</lombok.version>
         <micrometer.version>1.15.3</micrometer.version>
         <spring.kafka.version>3.3.9</spring.kafka.version>
+        <spring.artemis.version>3.5.5</spring.artemis.version>
     </properties>
 
     <distributionManagement>
@@ -265,6 +266,12 @@
             <version>${spring.kafka.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-artemis</artifactId>
+            <version>${spring.artemis.version}</version>
+        </dependency>
+
     </dependencies>
 
     <build>

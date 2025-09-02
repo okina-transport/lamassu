@@ -37,7 +37,6 @@ public class SubscriptionMonitoringService {
     URI producerUrl
   ) {
     if (!kafkaConfig.isKafkaEnabled()) {
-      log.info("Kafka is disabled, abort");
       return;
     }
     SubscriptionMonitoring sm = new SubscriptionMonitoring();

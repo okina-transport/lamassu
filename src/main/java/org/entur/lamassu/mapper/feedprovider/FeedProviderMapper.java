@@ -34,6 +34,7 @@ public class FeedProviderMapper {
     provider.setLanguage((String) providerData.get("language"));
     provider.setVersion((String) providerData.get("version"));
     provider.setAggregate((Boolean) providerData.get("aggregate"));
+    provider.setDatasetId((String) providerData.get("datasetId"));
 
     provider.setExcludeFeeds(
       GbfsUtils.convertToGBFSFeedNameList(providerData.get("excludeFeeds"))

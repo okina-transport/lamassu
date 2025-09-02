@@ -42,4 +42,5 @@ public class FeedProvider {
   private String version;
   private Instant lastSuccessfulProducerCall;
   private Instant lastFailedProducerCall;
+  private String datasetId;
 }
