@@ -5,7 +5,7 @@
     <parent>
         <groupId>com.okina.springboot</groupId>
         <artifactId>superpom</artifactId>
-        <version>2.0.13-SNAPSHOT</version>
+        <version>2.0.14-SNAPSHOT</version>
     </parent>
     <groupId>org.entur</groupId>
     <artifactId>lamassu</artifactId>
@@ -32,7 +32,7 @@
         <plugin.prettier.goal>write</plugin.prettier.goal>
         <jersey.version>3.1.11</jersey.version>
         <micrometer.version>1.15.4</micrometer.version>
-        <spring.kafka.version>3.3.9</spring.kafka.version>
+        <spring.kafka.version>3.3.10</spring.kafka.version>
         <spring.artemis.version>3.5.5</spring.artemis.version>
     </properties>
 
@@ -167,7 +167,7 @@
         <dependency>
             <groupId>org.springframework.graphql</groupId>
             <artifactId>spring-graphql-test</artifactId>
-            <version>1.4.1</version>
+            <version>1.4.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -237,7 +237,7 @@
         <dependency>
             <groupId>io.swagger.core.v3</groupId>
             <artifactId>swagger-annotations</artifactId>
-            <version>2.2.36</version>
+            <version>2.2.37</version>
         </dependency>
         <!-- Jersey -->
         <dependency>
