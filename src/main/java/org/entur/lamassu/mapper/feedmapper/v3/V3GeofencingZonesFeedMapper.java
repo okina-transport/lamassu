@@ -18,19 +18,15 @@
 
 package org.entur.lamassu.mapper.feedmapper.v3;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import org.apache.commons.collections4.CollectionUtils;
 import org.entur.lamassu.mapper.feedmapper.AbstractFeedMapper;
 import org.entur.lamassu.mapper.feedmapper.IdMappers;
 import org.entur.lamassu.model.provider.FeedProvider;
-import org.mobilitydata.gbfs.v3_0.geofencing_zones.GBFSData;
-import org.mobilitydata.gbfs.v3_0.geofencing_zones.GBFSFeature;
-import org.mobilitydata.gbfs.v3_0.geofencing_zones.GBFSGeofencingZones;
-import org.mobilitydata.gbfs.v3_0.geofencing_zones.GBFSGeofencingZones__1;
-import org.mobilitydata.gbfs.v3_0.geofencing_zones.GBFSGlobalRule;
-import org.mobilitydata.gbfs.v3_0.geofencing_zones.GBFSProperties;
-import org.mobilitydata.gbfs.v3_0.geofencing_zones.GBFSRule;
+import org.mobilitydata.gbfs.v3_0.geofencing_zones.*;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class V3GeofencingZonesFeedMapper extends AbstractFeedMapper<GBFSGeofencingZones> {
@@ -104,13 +100,15 @@ public class V3GeofencingZonesFeedMapper extends AbstractFeedMapper<GBFSGeofenci
     mapped.setName(properties.getName());
     mapped.setStart(properties.getStart());
     mapped.setEnd(properties.getEnd());
-    mapped.setRules(
-      properties
-        .getRules()
-        .stream()
-        .map(rule -> mapRule(rule, feedProvider))
-        .collect(Collectors.toList())
-    );
+    if (CollectionUtils.isNotEmpty(properties.getRules())) {
+      mapped.setRules(
+              properties
+                      .getRules()
+                      .stream()
+                      .map(rule -> mapRule(rule, feedProvider))
+                      .collect(Collectors.toList())
+      );
+    }
     return mapped;
   }
 
