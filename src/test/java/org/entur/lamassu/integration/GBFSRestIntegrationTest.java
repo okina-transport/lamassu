@@ -21,6 +21,7 @@ public class GBFSRestIntegrationTest extends AbstractIntegrationTestBase {
     mockMvc
       .perform(get("/gbfs/v2").contentType("application/json"))
       .andExpect(status().isOk())
+      .andExpect(jsonPath("$.systems.length()").value(1))
       .andExpect(jsonPath("$.systems[0].id").value("testatlantis"));
   }
 

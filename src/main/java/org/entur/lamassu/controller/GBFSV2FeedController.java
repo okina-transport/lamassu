@@ -35,6 +35,7 @@ import org.mobilitydata.gbfs.v2_3.gbfs.GBFS;
 import org.mobilitydata.gbfs.v2_3.gbfs.GBFSFeed;
 import org.mobilitydata.gbfs.v2_3.gbfs.GBFSFeedName;
 import org.mobilitydata.gbfs.v2_3.gbfs.GBFSFeeds;
+import org.mobilitydata.gbfs.v3_0.manifest.GBFSVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,7 +77,7 @@ public class GBFSV2FeedController {
 
   @GetMapping({ "", "/" })
   public ResponseEntity<SystemDiscovery> getFeedProviderDiscovery() {
-    var data = systemDiscoveryService.getSystemDiscovery();
+    var data = systemDiscoveryService.getSystemDiscovery(GBFSVersion.Version._2_3);
     return ResponseEntity
       .ok()
       .cacheControl(CacheControl.maxAge(60, TimeUnit.MINUTES).cachePublic())

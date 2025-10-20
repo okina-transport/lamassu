@@ -23,6 +23,7 @@ import org.entur.lamassu.model.provider.FeedProvider;
 import org.entur.lamassu.util.FeedUrlUtil;
 import org.mobilitydata.gbfs.v2_3.gbfs.GBFSFeedName;
 import org.mobilitydata.gbfs.v3_0.gbfs.GBFSFeed;
+import org.mobilitydata.gbfs.v3_0.manifest.GBFSVersion;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -32,17 +33,25 @@ public class SystemDiscoveryMapper {
   @Value("${org.entur.lamassu.baseUrl}")
   private String baseUrl;
 
-  public System mapSystemDiscovery(FeedProvider feedProvider) {
+  public System mapSystemDiscovery(
+    FeedProvider feedProvider,
+    GBFSVersion.Version version,
+    boolean enableGbfsV3ToV2Mapping
+  ) {
     var mapped = new System();
     mapped.setId(feedProvider.getSystemId());
-    if (feedProvider.getVersion() != null && feedProvider.getVersion().startsWith("3.")) {
+    boolean isV3Fp =
+      feedProvider.getVersion() != null && feedProvider.getVersion().startsWith("3.");
+    if (version == GBFSVersion.Version._3_0) {
       mapped.setUrl(FeedUrlUtil.mapFeedUrl(baseUrl, GBFSFeed.Name.GBFS, feedProvider));
-    } else {
-      mapped.setUrl(
-        FeedUrlUtil.mapFeedUrl(baseUrl, GBFSFeedName.GBFS, feedProvider).toString()
-      );
     }
-
+    if (version == GBFSVersion.Version._2_3) {
+      if (!isV3Fp || enableGbfsV3ToV2Mapping) {
+        mapped.setUrl(
+          FeedUrlUtil.mapFeedUrl(baseUrl, GBFSFeedName.GBFS, feedProvider).toString()
+        );
+      }
+    }
     return mapped;
   }
 }

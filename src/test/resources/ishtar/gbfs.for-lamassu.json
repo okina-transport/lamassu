@@ -6,6 +6,7 @@
         "operatorId": "TST:Operator:atlantis",
         "operatorName": "Atlantis",
         "url": "http://localhost:8888/testatlantis/gbfs",
+        "version": "2.3",
         "codespace": "TST",
         "language": "en",
         "authentication": {
@@ -20,7 +21,7 @@
         "operatorId": "OZO:Operator:testozon",
         "operatorName": "Ozon",
         "url": "http://localhost:8888/testozon/gbfs",
-        "version": "3.0-RC2",
+        "version": "3.0",
         "codespace": "OZO",
         "language": "en",
         "authentication": {

@@ -24,6 +24,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
 import org.entur.lamassu.cache.GBFSV3FeedCache;
+import org.entur.lamassu.model.discovery.SystemDiscovery;
 import org.entur.lamassu.model.provider.FeedProvider;
 import org.entur.lamassu.service.FeedProviderService;
 import org.entur.lamassu.service.SystemDiscoveryService;
@@ -32,6 +33,7 @@ import org.jetbrains.annotations.NotNull;
 import org.mobilitydata.gbfs.v3_0.gbfs.GBFSFeed;
 import org.mobilitydata.gbfs.v3_0.gbfs.GBFSGbfs;
 import org.mobilitydata.gbfs.v3_0.manifest.GBFSManifest;
+import org.mobilitydata.gbfs.v3_0.manifest.GBFSVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,6 +69,15 @@ public class GBFSV3FeedController {
     this.v3FeedCache = v3FeedCache;
     this.systemDiscoveryService = systemDiscoveryService;
     this.feedProviderService = feedProviderService;
+  }
+
+  @GetMapping({ "", "/" })
+  public ResponseEntity<SystemDiscovery> getFeedProviderDiscovery() {
+    var data = systemDiscoveryService.getSystemDiscovery(GBFSVersion.Version._3_0);
+    return ResponseEntity
+      .ok()
+      .cacheControl(CacheControl.maxAge(60, TimeUnit.MINUTES).cachePublic())
+      .body(data);
   }
 
   @GetMapping("/manifest.json")

@@ -1,8 +1,5 @@
 package org.entur.lamassu.service.impl;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.entur.lamassu.mapper.entitymapper.SystemDiscoveryMapper;
 import org.entur.lamassu.model.discovery.SystemDiscovery;
@@ -20,13 +17,17 @@ import org.mobilitydata.gbfs.v3_0.manifest.GBFSVersion;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 @Component
 public class SystemDiscoveryServiceImpl implements SystemDiscoveryService {
 
   private final FeedProviderService feedProviderService;
   private final SystemDiscoveryMapper systemDiscoveryMapper;
-
-  private final GBFSManifest gbfsManifest;
+  private final String baseUrl;
+  private final boolean enableGbfsV3ToV2Mapping;
 
   public SystemDiscoveryServiceImpl(
     FeedProviderService feedProviderService,
@@ -38,31 +39,40 @@ public class SystemDiscoveryServiceImpl implements SystemDiscoveryService {
   ) {
     this.feedProviderService = feedProviderService;
     this.systemDiscoveryMapper = systemDiscoveryMapper;
-    this.gbfsManifest =
-      mapGBFSManifest(feedProviderService, baseUrl, enableGbfsV3ToV2Mapping);
+    this.baseUrl = baseUrl;
+    this.enableGbfsV3ToV2Mapping = enableGbfsV3ToV2Mapping;
   }
 
-  public SystemDiscovery getSystemDiscovery() {
+  public SystemDiscovery getSystemDiscovery(GBFSVersion.Version version) {
     // recomputed every time
-    return mapSystemDiscovery(feedProviderService, systemDiscoveryMapper);
+    return mapSystemDiscovery(
+      feedProviderService,
+      systemDiscoveryMapper,
+      version
+    );
   }
 
   @Override
   public GBFSManifest getGBFSManifest() {
-    return gbfsManifest;
+    return mapGBFSManifest(feedProviderService, baseUrl, enableGbfsV3ToV2Mapping);
   }
 
   @NotNull
   private SystemDiscovery mapSystemDiscovery(
     FeedProviderService feedProviderService,
-    SystemDiscoveryMapper systemDiscoveryMapper
+    SystemDiscoveryMapper systemDiscoveryMapper,
+    GBFSVersion.Version version
   ) {
+    List<FeedProvider> feedProviders = feedProviderService.getFeedProviders();
+    if (!this.enableGbfsV3ToV2Mapping && (version == GBFSVersion.Version._2_3)) {
+      // remove version V3 feed(s) from V2 discovery when v3 to v2 mapping is disabled
+      feedProviders.removeIf(fp -> fp.getVersion().startsWith("3."));
+    }
     var mappedSystemDiscovery = new SystemDiscovery();
     mappedSystemDiscovery.setSystems(
-      feedProviderService
-        .getFeedProviders()
+        feedProviders
         .stream()
-        .map(systemDiscoveryMapper::mapSystemDiscovery)
+        .map(fp -> systemDiscoveryMapper.mapSystemDiscovery(fp, version, this.enableGbfsV3ToV2Mapping))
         .toList()
     );
     return mappedSystemDiscovery;
