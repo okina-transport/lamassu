@@ -1,14 +1,14 @@
 package org.entur.lamassu.integration;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.MockMvc;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @AutoConfigureMockMvc
 public class GBFSV3RestIntegrationTest extends AbstractIntegrationTestBase {
@@ -23,8 +23,7 @@ public class GBFSV3RestIntegrationTest extends AbstractIntegrationTestBase {
       .andExpect(status().isOk())
       .andExpect(jsonPath("$.systems.length()").value(2))
       .andExpect(jsonPath("$.systems[0].id").value("testatlantis"))
-      .andExpect(jsonPath("$.systems[1].id").value("testozon"))
-    ;
+      .andExpect(jsonPath("$.systems[1].id").value("testozon"));
   }
 
   @Test

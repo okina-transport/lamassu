@@ -1,5 +1,8 @@
 package org.entur.lamassu.service.impl;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.entur.lamassu.mapper.entitymapper.SystemDiscoveryMapper;
 import org.entur.lamassu.model.discovery.SystemDiscovery;
@@ -16,10 +19,6 @@ import org.mobilitydata.gbfs.v3_0.manifest.GBFSManifest;
 import org.mobilitydata.gbfs.v3_0.manifest.GBFSVersion;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 
 @Component
 public class SystemDiscoveryServiceImpl implements SystemDiscoveryService {
@@ -45,11 +44,7 @@ public class SystemDiscoveryServiceImpl implements SystemDiscoveryService {
 
   public SystemDiscovery getSystemDiscovery(GBFSVersion.Version version) {
     // recomputed every time
-    return mapSystemDiscovery(
-      feedProviderService,
-      systemDiscoveryMapper,
-      version
-    );
+    return mapSystemDiscovery(feedProviderService, systemDiscoveryMapper, version);
   }
 
   @Override
@@ -70,9 +65,15 @@ public class SystemDiscoveryServiceImpl implements SystemDiscoveryService {
     }
     var mappedSystemDiscovery = new SystemDiscovery();
     mappedSystemDiscovery.setSystems(
-        feedProviders
+      feedProviders
         .stream()
-        .map(fp -> systemDiscoveryMapper.mapSystemDiscovery(fp, version, this.enableGbfsV3ToV2Mapping))
+        .map(fp ->
+          systemDiscoveryMapper.mapSystemDiscovery(
+            fp,
+            version,
+            this.enableGbfsV3ToV2Mapping
+          )
+        )
         .toList()
     );
     return mappedSystemDiscovery;
