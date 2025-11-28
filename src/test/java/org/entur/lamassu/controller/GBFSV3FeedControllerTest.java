@@ -5,8 +5,10 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import org.entur.lamassu.cache.GBFSV3FeedCache;
+import org.entur.lamassu.config.v3.GlobalFeedConfiguration;
 import org.entur.lamassu.model.provider.FeedProvider;
 import org.entur.lamassu.service.FeedProviderService;
+import org.entur.lamassu.service.GlobalFeedProviderService;
 import org.entur.lamassu.service.SystemDiscoveryService;
 import org.junit.Before;
 import org.junit.Rule;
@@ -22,6 +24,8 @@ public class GBFSV3FeedControllerTest {
   public static final String KNOWN_SYSTEM_ID = "knownSystem";
   private GBFSV3FeedController feedController;
   private FeedProviderService mockedFeedProviderService;
+  private GlobalFeedProviderService mockedGlobalFeedProviderService;
+  private GlobalFeedConfiguration mockedGlobalFeedConfiguration;
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
@@ -33,12 +37,16 @@ public class GBFSV3FeedControllerTest {
     SystemDiscoveryService systemDiscoveryService = mock(SystemDiscoveryService.class);
     mockedFeedCache = mock(GBFSV3FeedCache.class);
     mockedFeedProviderService = mock(FeedProviderService.class);
+    mockedGlobalFeedConfiguration = mock(GlobalFeedConfiguration.class);
+    mockedGlobalFeedProviderService = mock(GlobalFeedProviderService.class);
 
     feedController =
       new GBFSV3FeedController(
         systemDiscoveryService,
         mockedFeedCache,
-        mockedFeedProviderService
+        mockedFeedProviderService,
+        mockedGlobalFeedProviderService,
+        mockedGlobalFeedConfiguration
       );
   }
 
