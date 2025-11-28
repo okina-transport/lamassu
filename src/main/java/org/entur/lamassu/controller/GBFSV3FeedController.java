@@ -24,9 +24,12 @@ import java.time.temporal.ChronoUnit;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
 import org.entur.lamassu.cache.GBFSV3FeedCache;
+import org.entur.lamassu.config.v3.GlobalFeedConfiguration;
 import org.entur.lamassu.model.discovery.SystemDiscovery;
 import org.entur.lamassu.model.provider.FeedProvider;
+import org.entur.lamassu.model.provider.GbfsModality;
 import org.entur.lamassu.service.FeedProviderService;
+import org.entur.lamassu.service.GlobalFeedProviderService;
 import org.entur.lamassu.service.SystemDiscoveryService;
 import org.entur.lamassu.util.CacheUtil;
 import org.jetbrains.annotations.NotNull;
@@ -59,16 +62,22 @@ public class GBFSV3FeedController {
   private final SystemDiscoveryService systemDiscoveryService;
   private final FeedProviderService feedProviderService;
   private final GBFSV3FeedCache v3FeedCache;
+  private final GlobalFeedProviderService globalFeedProviderService;
+  private final GlobalFeedConfiguration globalFeedConfiguration;
 
   @Autowired
   public GBFSV3FeedController(
     SystemDiscoveryService systemDiscoveryService,
     GBFSV3FeedCache v3FeedCache,
-    FeedProviderService feedProviderService
+    FeedProviderService feedProviderService,
+    GlobalFeedProviderService globalFeedProviderService,
+    GlobalFeedConfiguration globalFeedConfiguration
   ) {
     this.v3FeedCache = v3FeedCache;
     this.systemDiscoveryService = systemDiscoveryService;
     this.feedProviderService = feedProviderService;
+    this.globalFeedProviderService = globalFeedProviderService;
+    this.globalFeedConfiguration = globalFeedConfiguration;
   }
 
   @GetMapping({ "", "/" })
@@ -130,6 +139,20 @@ public class GBFSV3FeedController {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
     } catch (NoSuchElementException e) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+    }
+  }
+
+  @GetMapping(value = { "/aggregate/{mode}/{feed}", "/aggregate/{mode}/{feed}.json" })
+  public ResponseEntity<Object> getV3Feed(
+    @PathVariable GbfsModality mode,
+    @PathVariable String feed
+  ) {
+    if (globalFeedConfiguration.isEnabled()) {
+      return ResponseEntity
+        .ok()
+        .body(globalFeedProviderService.getGlobalFeed(mode, feed));
+    } else {
+      return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
   }
 

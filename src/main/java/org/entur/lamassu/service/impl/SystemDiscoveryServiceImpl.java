@@ -1,12 +1,16 @@
 package org.entur.lamassu.service.impl;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
+import org.entur.lamassu.config.v3.GlobalFeedConfiguration;
 import org.entur.lamassu.mapper.entitymapper.SystemDiscoveryMapper;
 import org.entur.lamassu.model.discovery.SystemDiscovery;
 import org.entur.lamassu.model.provider.FeedProvider;
+import org.entur.lamassu.model.provider.GbfsModality;
 import org.entur.lamassu.service.FeedProviderService;
 import org.entur.lamassu.service.SystemDiscoveryService;
 import org.entur.lamassu.util.FeedUrlUtil;
@@ -25,12 +29,14 @@ public class SystemDiscoveryServiceImpl implements SystemDiscoveryService {
 
   private final FeedProviderService feedProviderService;
   private final SystemDiscoveryMapper systemDiscoveryMapper;
+  private final GlobalFeedConfiguration globalFeedConfiguration;
   private final String baseUrl;
   private final boolean enableGbfsV3ToV2Mapping;
 
   public SystemDiscoveryServiceImpl(
     FeedProviderService feedProviderService,
     SystemDiscoveryMapper systemDiscoveryMapper,
+    GlobalFeedConfiguration globalFeedConfiguration,
     @Value("${org.entur.lamassu.baseUrl}") String baseUrl,
     @Value(
       "${fr.okina.lamassu.enableGbfsV3ToV2Mapping:false}"
@@ -38,6 +44,7 @@ public class SystemDiscoveryServiceImpl implements SystemDiscoveryService {
   ) {
     this.feedProviderService = feedProviderService;
     this.systemDiscoveryMapper = systemDiscoveryMapper;
+    this.globalFeedConfiguration = globalFeedConfiguration;
     this.baseUrl = baseUrl;
     this.enableGbfsV3ToV2Mapping = enableGbfsV3ToV2Mapping;
   }
@@ -84,6 +91,19 @@ public class SystemDiscoveryServiceImpl implements SystemDiscoveryService {
     String baseUrl,
     boolean enableGbfsV3ToV2Mapping
   ) {
+    List<GBFSDataset> datasets = feedProviderService
+      .getFeedProviders()
+      .stream()
+      .map(fp ->
+        new GBFSDataset()
+          .withSystemId(fp.getSystemId())
+          .withVersions(mapGBFSVersions(fp, baseUrl, enableGbfsV3ToV2Mapping))
+      )
+      .toList();
+    List<GBFSDataset> aggregateDataset = Collections.emptyList();
+    if (globalFeedConfiguration.isEnabled()) {
+      aggregateDataset = buildAggregateDataSet();
+    }
     return new GBFSManifest()
       .withVersion(GBFSVersion.Version._3_0.toString())
       .withLastUpdated(new Date())
@@ -91,17 +111,30 @@ public class SystemDiscoveryServiceImpl implements SystemDiscoveryService {
       .withData(
         new GBFSData()
           .withDatasets(
-            feedProviderService
-              .getFeedProviders()
-              .stream()
-              .map(fp ->
-                new GBFSDataset()
-                  .withSystemId(fp.getSystemId())
-                  .withVersions(mapGBFSVersions(fp, baseUrl, enableGbfsV3ToV2Mapping))
-              )
-              .toList()
+            Stream.concat(aggregateDataset.stream(), datasets.stream()).toList()
           )
       );
+  }
+
+  private List<GBFSDataset> buildAggregateDataSet() {
+    List<GBFSDataset> datasets = new ArrayList<>(GbfsModality.values().length);
+    for (GbfsModality gbfsModality : GbfsModality.values()) {
+      String url =
+        globalFeedConfiguration.getHostUrl() +
+        "/gbfs/v3/aggregate/" +
+        gbfsModality.getValue() +
+        "/gbfs";
+      datasets.add(
+        new GBFSDataset()
+          .withSystemId(
+            globalFeedConfiguration.getSystemIdPrefix() + gbfsModality.getValue()
+          )
+          .withVersions(
+            List.of(new GBFSVersion().withVersion(GBFSVersion.Version._3_0).withUrl(url))
+          )
+      );
+    }
+    return datasets;
   }
 
   private List<GBFSVersion> mapGBFSVersions(
