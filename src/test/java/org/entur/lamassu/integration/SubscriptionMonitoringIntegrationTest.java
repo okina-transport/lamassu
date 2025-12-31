@@ -56,7 +56,7 @@ class SubscriptionMonitoringIntegrationTest extends AbstractIntegrationTestBase 
       monitorings
         .stream()
         .anyMatch(sm ->
-          "ATLANTIS".equals(sm.getDataset()) &&
+          "TESTATLANTIS".equals(sm.getDataset()) &&
           "GBFS".equals(sm.getDataType()) &&
           "200".equals(sm.getHttpStatus()) &&
           "http://localhost:8888/testatlantis/gbfs".equals(sm.getProducerUrl())
@@ -67,7 +67,7 @@ class SubscriptionMonitoringIntegrationTest extends AbstractIntegrationTestBase 
       monitorings
         .stream()
         .anyMatch(sm ->
-          "OZON".equals(sm.getDataset()) &&
+          "TESTOZON".equals(sm.getDataset()) &&
           "GBFS".equals(sm.getDataType()) &&
           "200".equals(sm.getHttpStatus()) &&
           "http://localhost:8888/testozon/gbfs".equals(sm.getProducerUrl())
