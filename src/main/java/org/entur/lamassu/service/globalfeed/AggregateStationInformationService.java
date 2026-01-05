@@ -64,13 +64,17 @@ public class AggregateStationInformationService extends AggregateFeedDataService
     String aggregateSystemId = getSystemId();
     List<GBFSStation> updatedStations = new ArrayList<>(stationByFeed.size());
     for (GBFSStation station : stationByFeed) {
-      if (StringUtils.isNotBlank(station.getRegionId())) {
-        station.setRegionId(originalSystemId);
+      station.setRegionId(originalSystemId);
+      String[] originalStationIdParts = StringUtils.split(station.getStationId(), ':');
+      String originalStationId = globalFeedConfiguration.getDefaultStationId();
+      if (originalStationIdParts.length > 0) {
+        originalStationId =
+          StringUtils.defaultIfBlank(
+            originalStationIdParts[originalStationIdParts.length - 1],
+            globalFeedConfiguration.getDefaultStationId()
+          );
       }
-      String originalStationId = StringUtils.defaultIfBlank(
-        station.getStationId(),
-        globalFeedConfiguration.getDefaultStationId()
-      );
+
       station.setStationId(aggregateSystemId + ":" + originalStationId);
       updatedStations.add(station);
     }

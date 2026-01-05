@@ -1,16 +1,16 @@
 package org.entur.lamassu.service.globalfeed;
 
-import java.util.Date;
-import java.util.List;
 import org.entur.lamassu.cache.GBFSV3FeedCache;
 import org.entur.lamassu.config.v3.GlobalFeedConfiguration;
 import org.entur.lamassu.model.provider.FeedProvider;
-import org.entur.lamassu.model.provider.GbfsModality;
 import org.entur.lamassu.service.FeedProviderService;
 import org.mobilitydata.gbfs.v3_0.gbfs_versions.GBFSVersion;
 import org.mobilitydata.gbfs.v3_0.system_regions.GBFSName;
 import org.mobilitydata.gbfs.v3_0.system_regions.GBFSRegion;
 import org.mobilitydata.gbfs.v3_0.system_regions.GBFSSystemRegions;
+
+import java.util.Date;
+import java.util.List;
 
 public class AggregateSystemRegionsService extends AggregateFeedDataService {
 
@@ -25,7 +25,7 @@ public class AggregateSystemRegionsService extends AggregateFeedDataService {
   @Override
   public Object buildGlobalFeed() {
     List<FeedProvider> feedProviders = getFeedProviders();
-    String regionName = getRegionName();
+    String regionName = getSystemName();
     String language = globalFeedConfiguration.getLanguage();
     List<GBFSRegion> gbfsRegion = feedProviders
       .stream()
@@ -42,13 +42,5 @@ public class AggregateSystemRegionsService extends AggregateFeedDataService {
       .withVersion(GBFSVersion.Version._3_0.value())
       .withTtl(globalFeedConfiguration.getTimeToLive())
       .withLastUpdated(new Date());
-  }
-
-  private String getRegionName() {
-    String regionName = globalFeedConfiguration.getSystemName() + " agrégé";
-    if (gbfsModality != GbfsModality.GLOBAL) {
-      regionName += " par modalité " + gbfsModality.getFrenchLabel();
-    }
-    return regionName;
   }
 }
