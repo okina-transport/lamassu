@@ -51,6 +51,14 @@ public abstract class AggregateFeedDataService {
     return (this.globalFeedConfiguration.getSystemIdPrefix() + gbfsModality.getValue());
   }
 
+  protected String getSystemName() {
+    String regionName = globalFeedConfiguration.getSystemName() + " agrégé";
+    if (gbfsModality != GbfsModality.GLOBAL) {
+      regionName += " par " + gbfsModality.getFrenchLabel();
+    }
+    return regionName;
+  }
+
   protected Date ensureNonNullDate(Date input) {
     return Objects.requireNonNullElseGet(input, Date::new);
   }

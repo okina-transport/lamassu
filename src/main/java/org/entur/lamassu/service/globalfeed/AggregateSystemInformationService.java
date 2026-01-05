@@ -48,7 +48,7 @@ public class AggregateSystemInformationService extends AggregateFeedDataService 
         List.of(
           new GBFSName()
             .withLanguage(globalFeedConfiguration.getLanguage())
-            .withText(globalFeedConfiguration.getSystemName())
+            .withText(getSystemName())
         )
       )
       .withOpeningHours(globalFeedConfiguration.getOpeningHours())
