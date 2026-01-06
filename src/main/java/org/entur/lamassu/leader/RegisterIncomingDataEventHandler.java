@@ -72,14 +72,14 @@ public class RegisterIncomingDataEventHandler implements GBFSHttpClientEventHand
     }
     Optional<FeedProvider> feedProvider = this.findFeedProviderByUrl(discoveryUri);
     feedProvider.ifPresent(fp -> {
-      metricsService.registerIncomingData(httpStatus, discoveryUri, fp.getSystemId());
+      metricsService.registerIncomingData(httpStatus, discoveryUri, fp.getOperatorName());
       subscriptionMonitoringService.sendSubscriptionMonitoringData(
         httpStatus,
         fp,
         discoveryUri
       );
       if (feedUri != null) {
-        metricsService.registerIncomingData(httpStatus, feedUri, fp.getSystemId());
+        metricsService.registerIncomingData(httpStatus, feedUri, fp.getOperatorName());
         subscriptionMonitoringService.sendSubscriptionMonitoringData(
           httpStatus,
           fp,

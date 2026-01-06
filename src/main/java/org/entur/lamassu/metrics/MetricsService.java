@@ -182,10 +182,10 @@ public class MetricsService {
   public void registerIncomingData(
     @Nullable Integer httpStatus,
     URI uri,
-    String systemId
+    String dataset
   ) {
     List<Tag> tags = List.of(
-      new ImmutableTag("dataset", systemId.toUpperCase()),
+      new ImmutableTag("dataset", dataset.toUpperCase()),
       new ImmutableTag("http_status", httpStatus == null ? "" : httpStatus.toString()),
       new ImmutableTag("producer_url", uri.toString())
     );

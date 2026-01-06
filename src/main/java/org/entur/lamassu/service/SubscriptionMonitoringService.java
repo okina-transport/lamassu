@@ -40,7 +40,7 @@ public class SubscriptionMonitoringService {
       return;
     }
     SubscriptionMonitoring sm = new SubscriptionMonitoring();
-    sm.setDataset(fp.getSystemId().toUpperCase());
+    sm.setDataset(fp.getOperatorName().toUpperCase());
     sm.setHttpStatus(httpStatus == null ? "" : httpStatus.toString());
     sm.setProducerUrl(producerUrl.toString());
     Map<String, Object> headers = new HashMap<>();
