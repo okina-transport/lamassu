@@ -3,7 +3,6 @@ package org.entur.lamassu.ishtar;
 import java.net.URI;
 import java.time.Duration;
 import java.util.*;
-import org.entur.lamassu.ishtar.dto.LamassuProviderDto;
 import org.entur.lamassu.mapper.feedprovider.FeedProviderMapper;
 import org.entur.lamassu.model.provider.FeedProvider;
 import org.entur.lamassu.service.TokenService;
@@ -39,20 +38,31 @@ public class IshtarClient {
       .uri("/gbfs-apis/for-lamassu")
       .headers(headers -> headers.setBearerAuth(tokenService.getToken()))
       .retrieve()
-      .bodyToMono(new ParameterizedTypeReference<List<LamassuProviderDto>>() {})
+      .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
       .timeout(TIMEOUT)
       .blockOptional()
       .map(this::extractProvidersFromResponse)
       .orElse(Collections.emptyList());
   }
 
-  private List<FeedProvider> extractProvidersFromResponse(
-    List<LamassuProviderDto> response
-  ) {
+  private List<FeedProvider> extractProvidersFromResponse(Map<String, Object> response) {
     try {
       log.info("Ishtar providers content: {}", response);
 
-      return response.stream().map(feedProviderMapper::mapFromApiResponse).toList();
+      if (!(response.get("lamassu") instanceof Map<?, ?> lamassu)) {
+        throw new RuntimeException("lamassu is not a map");
+      }
+
+      if (!(lamassu.get("providers") instanceof List<?> providersList)) {
+        throw new RuntimeException("providers is not a list");
+      }
+
+      return providersList
+        .stream()
+        .filter(Map.class::isInstance)
+        .map(Map.class::cast)
+        .map(feedProviderMapper::mapFromApiResponse)
+        .toList();
     } catch (Exception e) {
       throw new RuntimeException("Failed to parse providers response", e);
     }

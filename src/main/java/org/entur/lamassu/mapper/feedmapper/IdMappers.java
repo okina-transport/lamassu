@@ -21,7 +21,6 @@ package org.entur.lamassu.mapper.feedmapper;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import org.apache.commons.collections4.CollectionUtils;
 import org.entur.lamassu.model.id.IdBuilder;
 import org.entur.lamassu.model.id.predicate.IdPredicateBuilder;
 import org.entur.lamassu.model.provider.FeedProvider;
@@ -74,11 +73,11 @@ public class IdMappers {
   }
 
   public static String mapVehicleTypeId(String vehicleTypeId, FeedProvider feedProvider) {
-    if (CollectionUtils.isNotEmpty(feedProvider.getVehicleTypes())) {
+    if (feedProvider.getVehicleTypes() != null) {
       return IdMappers.mapId(
         feedProvider.getCodespace(),
         IdMappers.VEHICLE_TYPE_ID_TYPE,
-        feedProvider.getVehicleTypes().getFirst().getVehicleTypeId()
+        feedProvider.getVehicleTypes().get(0).getVehicleTypeId()
       );
     }
 
@@ -106,11 +105,11 @@ public class IdMappers {
   }
 
   public static String mapPricingPlanId(String pricingPlanId, FeedProvider feedProvider) {
-    if (CollectionUtils.isNotEmpty(feedProvider.getPricingPlans())) {
+    if (feedProvider.getPricingPlans() != null) {
       return IdMappers.mapId(
         feedProvider.getCodespace(),
         IdMappers.PRICING_PLAN_ID_TYPE,
-        feedProvider.getPricingPlans().getFirst().getPlanId()
+        feedProvider.getPricingPlans().get(0).getPlanId()
       );
     }
 

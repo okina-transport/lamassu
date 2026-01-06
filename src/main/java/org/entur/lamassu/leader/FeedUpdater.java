@@ -18,6 +18,7 @@
 
 package org.entur.lamassu.leader;
 
+import jakarta.jms.Message;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -25,6 +26,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.entur.gbfs.GbfsSubscriptionManager;
 import org.entur.gbfs.GbfsSubscriptionOptions;
 import org.entur.gbfs.loader.v2.GbfsV2Delivery;
@@ -303,11 +305,21 @@ public class FeedUpdater {
   }
 
   private void receiveV3Update(FeedProvider feedProvider, GbfsV3Delivery gbfsV3Delivery) {
-    if (gbfsV3Delivery.stationStatus() != null) {
+    if (
+      gbfsV3Delivery.stationStatus() != null &&
+      StringUtils.isNotEmpty(feedProvider.getDatasetId())
+    ) {
       try {
         jmsTemplate.send(
           GBFS_TO_SIRI_QUEUE,
-          session -> messageConverter.toMessage(gbfsV3Delivery.stationStatus(), session)
+          session -> {
+            Message m = messageConverter.toMessage(
+              gbfsV3Delivery.stationStatus(),
+              session
+            );
+            m.setStringProperty("datasetId", feedProvider.getDatasetId());
+            return m;
+          }
         );
       } catch (JmsException e) {
         logger.error("Error sending GBFS v3 delivery to broker", e);

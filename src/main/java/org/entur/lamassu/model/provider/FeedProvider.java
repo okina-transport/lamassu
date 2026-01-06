@@ -43,5 +43,4 @@ public class FeedProvider {
   private Instant lastSuccessfulProducerCall;
   private Instant lastFailedProducerCall;
   private String datasetId;
-  private GbfsModality gbfsModality;
 }
