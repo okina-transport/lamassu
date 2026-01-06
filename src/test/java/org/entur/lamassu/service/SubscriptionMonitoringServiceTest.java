@@ -66,7 +66,7 @@ class SubscriptionMonitoringServiceTest {
     when(config.getEnvironment()).thenReturn("test");
 
     FeedProvider fp = new FeedProvider();
-    fp.setSystemId("1");
+    fp.setOperatorName("1");
 
     // Act
     tested.sendSubscriptionMonitoringData(httpStatus, fp, producerUrl);
@@ -112,7 +112,7 @@ class SubscriptionMonitoringServiceTest {
 
     URI producerUrl = URI.create("https://www.google.fr");
     FeedProvider fp = new FeedProvider();
-    fp.setSystemId("1");
+    fp.setOperatorName("1");
 
     // Act
     tested.sendSubscriptionMonitoringData(null, fp, producerUrl);
