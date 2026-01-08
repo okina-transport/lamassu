@@ -1,5 +1,7 @@
 package org.entur.lamassu.service.globalfeed;
 
+import java.util.Date;
+import java.util.List;
 import org.entur.lamassu.cache.GBFSV3FeedCache;
 import org.entur.lamassu.config.v3.GlobalFeedConfiguration;
 import org.entur.lamassu.model.provider.FeedProvider;
@@ -8,9 +10,6 @@ import org.mobilitydata.gbfs.v3_0.gbfs_versions.GBFSVersion;
 import org.mobilitydata.gbfs.v3_0.system_regions.GBFSName;
 import org.mobilitydata.gbfs.v3_0.system_regions.GBFSRegion;
 import org.mobilitydata.gbfs.v3_0.system_regions.GBFSSystemRegions;
-
-import java.util.Date;
-import java.util.List;
 
 public class AggregateSystemRegionsService extends AggregateFeedDataService {
 
