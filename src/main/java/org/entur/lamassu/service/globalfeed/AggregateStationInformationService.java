@@ -1,5 +1,8 @@
 package org.entur.lamassu.service.globalfeed;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import org.apache.commons.collections4.CollectionUtils;
 import org.entur.lamassu.cache.GBFSV3FeedCache;
 import org.entur.lamassu.config.v3.GlobalFeedConfiguration;
@@ -11,10 +14,6 @@ import org.mobilitydata.gbfs.v3_0.gbfs_versions.GBFSVersion;
 import org.mobilitydata.gbfs.v3_0.station_information.GBFSData;
 import org.mobilitydata.gbfs.v3_0.station_information.GBFSStation;
 import org.mobilitydata.gbfs.v3_0.station_information.GBFSStationInformation;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 
 public class AggregateStationInformationService extends AggregateFeedDataService {
 
