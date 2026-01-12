@@ -2,6 +2,7 @@ package org.entur.lamassu.service.globalfeed;
 
 import org.entur.lamassu.cache.GBFSV3FeedCache;
 import org.entur.lamassu.config.v3.GlobalFeedConfiguration;
+import org.entur.lamassu.mapper.feedmapper.v3.GbfsV3DeliveryMapper;
 import org.entur.lamassu.model.provider.GbfsModality;
 import org.entur.lamassu.service.FeedProviderService;
 import org.mobilitydata.gbfs.v3_0.gbfs.GBFSFeed;
@@ -14,74 +15,86 @@ public class AggregateFeedDataServiceBuilder {
     GBFSFeed.Name gbfsFeed,
     FeedProviderService feedProviderService,
     GBFSV3FeedCache gbfsv3FeedCache,
-    GlobalFeedConfiguration globalFeedConfiguration
+    GlobalFeedConfiguration globalFeedConfiguration,
+    GbfsV3DeliveryMapper gbfsV3DeliveryMapper
   ) {
     switch (gbfsFeed) {
       case GBFS_VERSIONS -> instance =
         new AggregateGBFSVersionService(
           feedProviderService,
           gbfsv3FeedCache,
-          globalFeedConfiguration
+          globalFeedConfiguration,
+          gbfsV3DeliveryMapper
         );
       case SYSTEM_INFORMATION -> instance =
         new AggregateSystemInformationService(
           feedProviderService,
           gbfsv3FeedCache,
-          globalFeedConfiguration
+          globalFeedConfiguration,
+          gbfsV3DeliveryMapper
         );
       case VEHICLE_TYPES -> instance =
         new AggregateVehicleTypesService(
           feedProviderService,
           gbfsv3FeedCache,
-          globalFeedConfiguration
+          globalFeedConfiguration,
+          gbfsV3DeliveryMapper
         );
       case STATION_INFORMATION -> instance =
         new AggregateStationInformationService(
           feedProviderService,
           gbfsv3FeedCache,
-          globalFeedConfiguration
+          globalFeedConfiguration,
+          gbfsV3DeliveryMapper
         );
       case STATION_STATUS -> instance =
         new AggregateStationStatusService(
           feedProviderService,
           gbfsv3FeedCache,
-          globalFeedConfiguration
+          globalFeedConfiguration,
+          gbfsV3DeliveryMapper
         );
       case VEHICLE_STATUS -> instance =
         new AggregateVehicleStatusService(
           feedProviderService,
           gbfsv3FeedCache,
-          globalFeedConfiguration
+          globalFeedConfiguration,
+          gbfsV3DeliveryMapper
         );
       case SYSTEM_ALERTS -> instance =
         new AggregateSystemAlertsService(
           feedProviderService,
           gbfsv3FeedCache,
-          globalFeedConfiguration
+          globalFeedConfiguration,
+          gbfsV3DeliveryMapper
         );
       case SYSTEM_REGIONS -> instance =
         new AggregateSystemRegionsService(
           feedProviderService,
           gbfsv3FeedCache,
-          globalFeedConfiguration
+          globalFeedConfiguration,
+          gbfsV3DeliveryMapper
         );
       case SYSTEM_PRICING_PLANS -> instance =
         new AggregateSystemPricingPlansService(
           feedProviderService,
           gbfsv3FeedCache,
-          globalFeedConfiguration
+          globalFeedConfiguration,
+          gbfsV3DeliveryMapper
         );
       case GEOFENCING_ZONES -> instance =
         new AggregateGeofencingZonesService(
           feedProviderService,
           gbfsv3FeedCache,
-          globalFeedConfiguration
+          globalFeedConfiguration,
+          gbfsV3DeliveryMapper
         );
       default -> instance =
         new AggregateGBFSService(
           feedProviderService,
           gbfsv3FeedCache,
-          globalFeedConfiguration
+          globalFeedConfiguration,
+          gbfsV3DeliveryMapper
         );
     }
   }
@@ -90,13 +103,15 @@ public class AggregateFeedDataServiceBuilder {
     GBFSFeed.Name gbfsFeed,
     FeedProviderService feedProviderService,
     GBFSV3FeedCache gbfsv3FeedCache,
-    GlobalFeedConfiguration globalFeedConfiguration
+    GlobalFeedConfiguration globalFeedConfiguration,
+    GbfsV3DeliveryMapper gbfsV3DeliveryMapper
   ) {
     return new AggregateFeedDataServiceBuilder(
       gbfsFeed,
       feedProviderService,
       gbfsv3FeedCache,
-      globalFeedConfiguration
+      globalFeedConfiguration,
+      gbfsV3DeliveryMapper
     );
   }
 

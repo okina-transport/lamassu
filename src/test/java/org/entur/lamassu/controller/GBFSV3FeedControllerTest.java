@@ -1,19 +1,19 @@
 package org.entur.lamassu.controller;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
 import org.entur.lamassu.cache.GBFSV3FeedCache;
 import org.entur.lamassu.config.v3.GlobalFeedConfiguration;
+import org.entur.lamassu.mapper.feedmapper.v3.GbfsV3DeliveryMapper;
 import org.entur.lamassu.model.provider.FeedProvider;
 import org.entur.lamassu.service.FeedProviderService;
 import org.entur.lamassu.service.GlobalFeedProviderService;
 import org.entur.lamassu.service.SystemDiscoveryService;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.mobilitydata.gbfs.v3_0.gbfs.GBFSData;
 import org.mobilitydata.gbfs.v3_0.gbfs.GBFSFeed;
 import org.mobilitydata.gbfs.v3_0.gbfs.GBFSGbfs;
@@ -26,9 +26,7 @@ public class GBFSV3FeedControllerTest {
   private FeedProviderService mockedFeedProviderService;
   private GlobalFeedProviderService mockedGlobalFeedProviderService;
   private GlobalFeedConfiguration mockedGlobalFeedConfiguration;
-
-  @Rule
-  public ExpectedException expectedException = ExpectedException.none();
+  private GbfsV3DeliveryMapper mockedDeliveryMapper;
 
   private GBFSV3FeedCache mockedFeedCache;
 
@@ -39,6 +37,7 @@ public class GBFSV3FeedControllerTest {
     mockedFeedProviderService = mock(FeedProviderService.class);
     mockedGlobalFeedConfiguration = mock(GlobalFeedConfiguration.class);
     mockedGlobalFeedProviderService = mock(GlobalFeedProviderService.class);
+    mockedDeliveryMapper = mock(GbfsV3DeliveryMapper.class);
 
     feedController =
       new GBFSV3FeedController(
@@ -46,23 +45,27 @@ public class GBFSV3FeedControllerTest {
         mockedFeedCache,
         mockedFeedProviderService,
         mockedGlobalFeedProviderService,
-        mockedGlobalFeedConfiguration
+        mockedGlobalFeedConfiguration,
+        mockedDeliveryMapper
       );
   }
 
   @Test
   public void throws400OnNonGBFSFeedRequest() {
-    expectedException.expect(ResponseStatusException.class);
-    expectedException.expectMessage("400 BAD_REQUEST");
-
-    feedController.getV3Feed("anySystem", "no-gbfs-feed");
+    assertThrows(
+      ResponseStatusException.class,
+      () -> feedController.getV3Feed("anySystem", "no-gbfs-feed", false),
+      "400 BAD_REQUEST"
+    );
   }
 
   @Test
   public void throws404OnNonConfiguredSystemRequest() {
-    expectedException.expect(ResponseStatusException.class);
-    expectedException.expectMessage("404 NOT_FOUND");
-    feedController.getV3Feed("unknownSystem", "gbfs");
+    assertThrows(
+      ResponseStatusException.class,
+      () -> feedController.getV3Feed("unknownSystem", "gbfs", false),
+      "404 NOT_FOUND"
+    );
   }
 
   @Test
@@ -72,8 +75,10 @@ public class GBFSV3FeedControllerTest {
     when(mockedFeedProviderService.getFeedProviderBySystemId(KNOWN_SYSTEM_ID))
       .thenReturn(feedProvider);
 
-    expectedException.expect(UpstreamFeedNotYetAvailableException.class);
-    feedController.getV3Feed(KNOWN_SYSTEM_ID, "gbfs");
+    assertThrows(
+      UpstreamFeedNotYetAvailableException.class,
+      () -> feedController.getV3Feed(KNOWN_SYSTEM_ID, "gbfs", false)
+    );
   }
 
   @Test
@@ -87,9 +92,12 @@ public class GBFSV3FeedControllerTest {
     when(mockedFeedCache.find(GBFSFeed.Name.GBFS, feedProvider)).thenReturn(gbfs);
     when(mockedFeedCache.find(GBFSFeed.Name.GEOFENCING_ZONES, feedProvider))
       .thenReturn(null);
-    expectedException.expect(ResponseStatusException.class);
-    expectedException.expectMessage("404 NOT_FOUND");
-    feedController.getV3Feed(KNOWN_SYSTEM_ID, "geofencing_zones");
+
+    assertThrows(
+      ResponseStatusException.class,
+      () -> feedController.getV3Feed(KNOWN_SYSTEM_ID, "geofencing_zones", false),
+      "404 NOT_FOUND"
+    );
   }
 
   @Test
@@ -103,8 +111,11 @@ public class GBFSV3FeedControllerTest {
     when(mockedFeedCache.find(GBFSFeed.Name.GBFS, feedProvider)).thenReturn(gbfs);
     when(mockedFeedCache.find(GBFSFeed.Name.GEOFENCING_ZONES, feedProvider))
       .thenReturn(null);
-    expectedException.expect(UpstreamFeedNotYetAvailableException.class);
-    feedController.getV3Feed(KNOWN_SYSTEM_ID, "geofencing_zones");
+
+    assertThrows(
+      UpstreamFeedNotYetAvailableException.class,
+      () -> feedController.getV3Feed(KNOWN_SYSTEM_ID, "geofencing_zones", false)
+    );
   }
 
   @Test
@@ -119,8 +130,11 @@ public class GBFSV3FeedControllerTest {
     when(mockedFeedCache.find(GBFSFeed.Name.GBFS, feedProvider)).thenReturn(gbfs);
     when(mockedFeedCache.find(GBFSFeed.Name.GEOFENCING_ZONES, feedProvider))
       .thenReturn(null);
-    expectedException.expect(UpstreamFeedNotYetAvailableException.class);
-    feedController.getV3Feed(KNOWN_SYSTEM_ID, "geofencing_zones");
+
+    assertThrows(
+      UpstreamFeedNotYetAvailableException.class,
+      () -> feedController.getV3Feed(KNOWN_SYSTEM_ID, "geofencing_zones", false)
+    );
   }
 
   public GBFSGbfs createDiscoveryFileWithFeed(GBFSFeed.Name feedName) {

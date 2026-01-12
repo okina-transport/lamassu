@@ -42,7 +42,7 @@ public class V3DiscoveryFeedMapper extends AbstractFeedMapper<GBFSGbfs> {
   private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
   @Override
-  public GBFSGbfs map(GBFSGbfs source, FeedProvider feedProvider) {
+  public GBFSGbfs map(GBFSGbfs source, FeedProvider feedProvider, boolean toOriginalId) {
     if (source.getData() == null) {
       logger.warn("Missing discovery data for provider={} feed={}", feedProvider, source);
       return null;
@@ -77,7 +77,9 @@ public class V3DiscoveryFeedMapper extends AbstractFeedMapper<GBFSGbfs> {
       .map(feed -> {
         var mappedFeed = new GBFSFeed();
         mappedFeed.setName(feed.getName());
-        mappedFeed.setUrl(FeedUrlUtil.mapFeedUrl(baseUrl, feed.getName(), feedProvider));
+        mappedFeed.setUrl(
+          FeedUrlUtil.mapFeedUrl(baseUrl, feed.getName(), feedProvider, toOriginalId)
+        );
         return mappedFeed;
       })
       // Lamassu currently only support producing a single version of GBFS, therefore
@@ -93,7 +95,12 @@ public class V3DiscoveryFeedMapper extends AbstractFeedMapper<GBFSGbfs> {
       var vehicleTypesFeed = new GBFSFeed();
       vehicleTypesFeed.setName(GBFSFeed.Name.VEHICLE_TYPES);
       vehicleTypesFeed.setUrl(
-        FeedUrlUtil.mapFeedUrl(baseUrl, GBFSFeed.Name.VEHICLE_TYPES, feedProvider)
+        FeedUrlUtil.mapFeedUrl(
+          baseUrl,
+          GBFSFeed.Name.VEHICLE_TYPES,
+          feedProvider,
+          toOriginalId
+        )
       );
       feeds.add(vehicleTypesFeed);
     }
@@ -107,7 +114,12 @@ public class V3DiscoveryFeedMapper extends AbstractFeedMapper<GBFSGbfs> {
       var pricingPlansFeed = new GBFSFeed();
       pricingPlansFeed.setName(GBFSFeed.Name.SYSTEM_PRICING_PLANS);
       pricingPlansFeed.setUrl(
-        FeedUrlUtil.mapFeedUrl(baseUrl, GBFSFeed.Name.SYSTEM_PRICING_PLANS, feedProvider)
+        FeedUrlUtil.mapFeedUrl(
+          baseUrl,
+          GBFSFeed.Name.SYSTEM_PRICING_PLANS,
+          feedProvider,
+          toOriginalId
+        )
       );
       feeds.add(pricingPlansFeed);
     }

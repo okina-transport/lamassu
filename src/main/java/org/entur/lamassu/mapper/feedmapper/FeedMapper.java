@@ -22,6 +22,11 @@ import java.util.function.Consumer;
 import org.entur.lamassu.model.provider.FeedProvider;
 
 public interface FeedMapper<T> {
-  T map(T source, FeedProvider feedProvider);
-  T map(T source, FeedProvider feedProvider, Consumer<T> postProcessor);
+  T map(T source, FeedProvider feedProvider, boolean toOriginalId);
+  T map(
+    T source,
+    FeedProvider feedProvider,
+    boolean toOriginalId,
+    Consumer<T> postProcessor
+  );
 }

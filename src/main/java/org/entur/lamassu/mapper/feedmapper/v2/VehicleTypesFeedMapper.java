@@ -18,15 +18,13 @@
 
 package org.entur.lamassu.mapper.feedmapper.v2;
 
-import static org.entur.lamassu.mapper.feedmapper.IdMappers.PRICING_PLAN_ID_TYPE;
-import static org.entur.lamassu.mapper.feedmapper.IdMappers.VEHICLE_TYPE_ID_TYPE;
-
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.entur.lamassu.mapper.feedidmapper.v2.VehicleTypesFeedIdMapper;
 import org.entur.lamassu.mapper.feedmapper.AbstractFeedMapper;
-import org.entur.lamassu.mapper.feedmapper.IdMappers;
 import org.entur.lamassu.model.provider.FeedProvider;
 import org.mobilitydata.gbfs.v2_3.vehicle_types.GBFSData;
 import org.mobilitydata.gbfs.v2_3.vehicle_types.GBFSVehicleType;
@@ -40,10 +38,20 @@ public class VehicleTypesFeedMapper extends AbstractFeedMapper<GBFSVehicleTypes>
   @Value("${org.entur.lamassu.targetGbfsVersion:2.2}")
   private String targetGbfsVersion;
 
+  private final VehicleTypesFeedIdMapper idMapper;
+
+  public VehicleTypesFeedMapper(VehicleTypesFeedIdMapper idMapper) {
+    this.idMapper = idMapper;
+  }
+
   @Override
-  public GBFSVehicleTypes map(GBFSVehicleTypes source, FeedProvider feedProvider) {
+  public GBFSVehicleTypes map(
+    GBFSVehicleTypes source,
+    FeedProvider feedProvider,
+    boolean toOriginalId
+  ) {
     if (feedProvider.getVehicleTypes() != null) {
-      return customVehicleTypes(feedProvider);
+      return customVehicleTypes(feedProvider, toOriginalId);
     }
 
     if (source == null) {
@@ -54,42 +62,41 @@ public class VehicleTypesFeedMapper extends AbstractFeedMapper<GBFSVehicleTypes>
     mapped.setVersion(targetGbfsVersion);
     mapped.setTtl(source.getTtl());
     mapped.setLastUpdated(source.getLastUpdated());
-    mapped.setData(mapData(source.getData(), feedProvider.getCodespace()));
+    mapped.setData(mapData(source.getData()));
+
+    idMapper.mapIds(mapped, feedProvider, toOriginalId);
     return mapped;
   }
 
-  private GBFSVehicleTypes customVehicleTypes(FeedProvider feedProvider) {
+  private GBFSVehicleTypes customVehicleTypes(
+    FeedProvider feedProvider,
+    boolean toOriginalId
+  ) {
     var custom = new GBFSVehicleTypes();
     custom.setVersion(targetGbfsVersion);
     custom.setLastUpdated((int) Instant.now().getEpochSecond());
     custom.setTtl((int) Duration.ofMinutes(5).toSeconds());
     var data = new GBFSData();
     data.setVehicleTypes(feedProvider.getVehicleTypes());
-    custom.setData(mapData(data, feedProvider.getCodespace()));
+    custom.setData(mapData(data));
+
+    idMapper.mapIds(custom, feedProvider, toOriginalId);
     return custom;
   }
 
-  private GBFSData mapData(GBFSData data, String codespace) {
+  private GBFSData mapData(GBFSData data) {
     var mapped = new GBFSData();
-    mapped.setVehicleTypes(mapVehicleTypes(data.getVehicleTypes(), codespace));
+    mapped.setVehicleTypes(mapVehicleTypes(data.getVehicleTypes()));
     return mapped;
   }
 
-  private List<GBFSVehicleType> mapVehicleTypes(
-    List<GBFSVehicleType> vehicleTypes,
-    String codespace
-  ) {
-    return vehicleTypes
-      .stream()
-      .map(vehicleType -> mapVehicleType(vehicleType, codespace))
-      .collect(Collectors.toList());
+  private List<GBFSVehicleType> mapVehicleTypes(List<GBFSVehicleType> vehicleTypes) {
+    return vehicleTypes.stream().map(this::mapVehicleType).collect(Collectors.toList());
   }
 
-  private GBFSVehicleType mapVehicleType(GBFSVehicleType vehicleType, String codespace) {
+  private GBFSVehicleType mapVehicleType(GBFSVehicleType vehicleType) {
     var mapped = new GBFSVehicleType();
-    mapped.setVehicleTypeId(
-      IdMappers.mapId(codespace, VEHICLE_TYPE_ID_TYPE, vehicleType.getVehicleTypeId())
-    );
+    mapped.setVehicleTypeId(vehicleType.getVehicleTypeId());
     mapped.setFormFactor(vehicleType.getFormFactor());
     mapped.setRiderCapacity(vehicleType.getRiderCapacity());
     mapped.setCargoVolumeCapacity(vehicleType.getCargoVolumeCapacity());
@@ -110,18 +117,10 @@ public class VehicleTypesFeedMapper extends AbstractFeedMapper<GBFSVehicleTypes>
     mapped.setDefaultReserveTime(vehicleType.getDefaultReserveTime());
     mapped.setReturnConstraint(vehicleType.getReturnConstraint());
     mapped.setVehicleAssets(vehicleType.getVehicleAssets());
-    mapped.setDefaultPricingPlanId(
-      IdMappers.mapId(
-        codespace,
-        PRICING_PLAN_ID_TYPE,
-        vehicleType.getDefaultPricingPlanId()
-      )
-    );
+    mapped.setDefaultPricingPlanId(vehicleType.getDefaultPricingPlanId());
     mapped.setPricingPlanIds(
       vehicleType.getPricingPlanIds() != null
-        ? IdMappers
-          .mapIds(codespace, PRICING_PLAN_ID_TYPE, vehicleType.getPricingPlanIds())
-          .orElse(null)
+        ? new ArrayList<>(vehicleType.getPricingPlanIds())
         : null
     );
     return mapped;

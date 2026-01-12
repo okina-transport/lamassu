@@ -19,7 +19,9 @@
 package org.entur.lamassu.mapper.feedmapper.v2;
 
 import java.util.List;
+import org.entur.lamassu.mapper.feedidmapper.v2.SystemPricingPlansFeedIdMapper;
 import org.entur.lamassu.model.provider.FeedProvider;
+import org.entur.lamassu.service.idmapping.EnturIdMappingService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mobilitydata.gbfs.v2_3.system_pricing_plans.GBFSPerMinPricing;
@@ -30,12 +32,14 @@ class SystemPricingPlansFeedMapperTest {
 
   @Test
   void testCustomPricingPlans() {
-    var mapper = new SystemPricingPlansFeedMapper();
+    var mapper = new SystemPricingPlansFeedMapper(
+      new SystemPricingPlansFeedIdMapper(new EnturIdMappingService())
+    );
     ReflectionTestUtils.setField(mapper, "targetGbfsVersion", "2.2");
-    var feed = mapper.map(null, getTestProvider());
+    var feed = mapper.map(null, getTestProvider(), false);
     Assertions.assertEquals(
       "TST:PricingPlan:TestPlan",
-      feed.getData().getPlans().get(0).getPlanId()
+      feed.getData().getPlans().getFirst().getPlanId()
     );
   }
 

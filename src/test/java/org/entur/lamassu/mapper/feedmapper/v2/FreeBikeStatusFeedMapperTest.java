@@ -18,15 +18,21 @@
 
 package org.entur.lamassu.mapper.feedmapper.v2;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mobilitydata.gbfs.v2_3.free_bike_status.VehicleEquipment.CHILD_SEAT_A;
+
 import java.util.List;
+import org.entur.lamassu.mapper.feedidmapper.v2.FreeBikeStatusFeedIdMapper;
 import org.entur.lamassu.model.provider.FeedProvider;
+import org.entur.lamassu.service.idmapping.EnturIdMappingService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mobilitydata.gbfs.v2_3.free_bike_status.GBFSBike;
-import org.mobilitydata.gbfs.v2_3.system_pricing_plans.GBFSPerMinPricing;
-import org.mobilitydata.gbfs.v2_3.system_pricing_plans.GBFSPlan;
-import org.mobilitydata.gbfs.v2_3.vehicle_types.GBFSVehicleType;
+import org.mobilitydata.gbfs.v2_3.free_bike_status.GBFSData;
+import org.mobilitydata.gbfs.v2_3.free_bike_status.GBFSFreeBikeStatus;
+import org.mobilitydata.gbfs.v2_3.free_bike_status.GBFSRentalUris;
 
 class FreeBikeStatusFeedMapperTest {
 
@@ -34,13 +40,16 @@ class FreeBikeStatusFeedMapperTest {
 
   @BeforeEach
   void prepare() {
-    mapper = new FreeBikeStatusFeedMapper();
+    mapper =
+      new FreeBikeStatusFeedMapper(
+        "2.3",
+        new FreeBikeStatusFeedIdMapper(new EnturIdMappingService())
+      );
   }
 
   @Test
   void testMissingCurrentRangeMeters() {
-    var feedProvider = getTestProvider();
-    var mapped = mapper.mapBike(new GBFSBike(), feedProvider);
+    var mapped = mapper.mapBike(new GBFSBike());
     // if no current_range_meters is provided, we explicitly don't want Lamassu to fill it in
     Assertions.assertNull(mapped.getCurrentRangeMeters());
   }
@@ -48,33 +57,65 @@ class FreeBikeStatusFeedMapperTest {
   @Test
   void testCustomData() {
     var feedProvider = getTestProvider();
-    var vehicleType = new GBFSVehicleType();
-    vehicleType.setVehicleTypeId("TestScooter");
-    vehicleType.setName("TestScooter");
-    vehicleType.setFormFactor(GBFSVehicleType.FormFactor.SCOOTER);
-    vehicleType.setPropulsionType(GBFSVehicleType.PropulsionType.ELECTRIC);
-    vehicleType.setMaxRangeMeters(1000.0);
-    feedProvider.setVehicleTypes(List.of(vehicleType));
 
-    var plan = new GBFSPlan();
-    plan.setPlanId("TestPlan");
-    plan.setName("TestPlan");
-    plan.setPrice(0.0);
-    plan.setIsTaxable(false);
-    plan.setCurrency("NOK");
-    plan.setDescription("Describe your plan");
-    var perMinPricing = new GBFSPerMinPricing();
-    perMinPricing.setStart(0);
-    perMinPricing.setInterval(1);
-    perMinPricing.setRate(5.0);
-    plan.setPerMinPricing(List.of(perMinPricing));
-    feedProvider.setPricingPlans(List.of(plan));
+    GBFSRentalUris rentalUris = new GBFSRentalUris()
+      .withAndroid("android")
+      .withIos("ios")
+      .withWeb("web");
 
-    var mapped = mapper.mapBike(new GBFSBike(), feedProvider);
+    GBFSBike bike = new GBFSBike()
+      .withBikeId("BikeId")
+      .withLat(5.0)
+      .withLon(6.0)
+      .withIsReserved(true)
+      .withIsDisabled(true)
+      .withRentalUris(rentalUris)
+      .withLastReported(7.0d)
+      .withCurrentRangeMeters(8.0d)
+      .withCurrentFuelPercent(9.0d)
+      .withStationId("StationId")
+      .withHomeStationId("HomeStationId")
+      .withPricingPlanId("PricingPlanId")
+      .withVehicleEquipment(List.of(CHILD_SEAT_A))
+      .withAvailableUntil("31/12/2026");
 
-    Assertions.assertEquals("TST:VehicleType:TestScooter", mapped.getVehicleTypeId());
+    GBFSData data = new GBFSData().withBikes(List.of(bike));
 
-    Assertions.assertEquals("TST:PricingPlan:TestPlan", mapped.getPricingPlanId());
+    GBFSFreeBikeStatus source = new GBFSFreeBikeStatus()
+      .withVersion("2.2")
+      .withTtl(600)
+      .withLastUpdated(900)
+      .withData(data);
+
+    var mapped = mapper.map(source, feedProvider, false);
+
+    assertEquals("2.3", mapped.getVersion());
+    assertEquals(600, mapped.getTtl());
+    assertEquals(900, mapped.getLastUpdated());
+
+    var mappedData = mapped.getData();
+    assertEquals(1, mappedData.getBikes().size());
+
+    var mappedBike = mappedData.getBikes().getFirst();
+    assertEquals("TST:Vehicle:BikeId", mappedBike.getBikeId());
+    assertEquals(5.0, mappedBike.getLat());
+    assertEquals(6.0, mappedBike.getLon());
+    assertTrue(mappedBike.getIsReserved());
+    assertTrue(mappedBike.getIsDisabled());
+    assertEquals(7.0d, mappedBike.getLastReported());
+    assertEquals(8.0d, mappedBike.getCurrentRangeMeters());
+    assertEquals(9.0d, mappedBike.getCurrentFuelPercent());
+    assertEquals("TST:Station:StationId", mappedBike.getStationId());
+    assertEquals("TST:Station:HomeStationId", mappedBike.getHomeStationId());
+    assertEquals("TST:PricingPlan:PricingPlanId", mappedBike.getPricingPlanId());
+    assertEquals(1, mappedBike.getVehicleEquipment().size());
+    assertEquals(CHILD_SEAT_A, mappedBike.getVehicleEquipment().getFirst());
+    assertEquals("31/12/2026", mappedBike.getAvailableUntil());
+
+    var mappedRentalUri = mappedBike.getRentalUris();
+    assertEquals("android", mappedRentalUri.getAndroid());
+    assertEquals("ios", mappedRentalUri.getIos());
+    assertEquals("web", mappedRentalUri.getWeb());
   }
 
   private FeedProvider getTestProvider() {

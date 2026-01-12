@@ -1,0 +1,16 @@
+[
+  {
+    "operator": "testatlantis",
+    "originalId": "1",
+    "countryCode": "FR",
+    "insee": "40140",
+    "superId": "FR:40140:Parking:1:LOC"
+  },
+  {
+    "operator": "testatlantis",
+    "originalId": "2",
+    "countryCode": "FR",
+    "insee": "40140",
+    "superId": "FR:40140:Parking:2:LOC"
+  }
+]

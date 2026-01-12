@@ -25,6 +25,7 @@ import java.util.Collection;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
 import org.entur.lamassu.cache.GBFSV2FeedCache;
+import org.entur.lamassu.mapper.feedmapper.v2.GbfsV2DeliveryMapper;
 import org.entur.lamassu.model.discovery.SystemDiscovery;
 import org.entur.lamassu.model.provider.FeedProvider;
 import org.entur.lamassu.service.FeedProviderService;
@@ -43,10 +44,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
@@ -64,20 +62,29 @@ public class GBFSV2FeedController {
 
   private final GBFSV2FeedCache feedCache;
 
+  private final GbfsV2DeliveryMapper deliveryMapper;
+
   @Autowired
   public GBFSV2FeedController(
     SystemDiscoveryService systemDiscoveryService,
     GBFSV2FeedCache feedCache,
-    FeedProviderService feedProviderService
+    FeedProviderService feedProviderService,
+    GbfsV2DeliveryMapper deliveryMapper
   ) {
     this.systemDiscoveryService = systemDiscoveryService;
     this.feedCache = feedCache;
     this.feedProviderService = feedProviderService;
+    this.deliveryMapper = deliveryMapper;
   }
 
   @GetMapping({ "", "/" })
-  public ResponseEntity<SystemDiscovery> getFeedProviderDiscovery() {
-    var data = systemDiscoveryService.getSystemDiscovery(GBFSVersion.Version._2_3);
+  public ResponseEntity<SystemDiscovery> getFeedProviderDiscovery(
+    @RequestParam(name = "useOriginalId", defaultValue = "false") boolean useOriginalId
+  ) {
+    var data = systemDiscoveryService.getSystemDiscovery(
+      GBFSVersion.Version._2_3,
+      useOriginalId
+    );
     return ResponseEntity
       .ok()
       .cacheControl(CacheControl.maxAge(60, TimeUnit.MINUTES).cachePublic())
@@ -87,11 +94,12 @@ public class GBFSV2FeedController {
   @GetMapping(value = { "/{systemId}/{feed}", "/{systemId}/{feed}.json" })
   public ResponseEntity<Object> getGbfsFeedForProvider(
     @PathVariable String systemId,
-    @PathVariable String feed
+    @PathVariable String feed,
+    @RequestParam(name = "useOriginalId", defaultValue = "false") boolean useOriginalId
   ) {
     try {
       var feedName = GBFSFeedName.fromValue(feed);
-      Object data = getFeed(systemId, feed);
+      Object data = getFeed(systemId, feed, useOriginalId);
       return ResponseEntity
         .ok()
         .cacheControl(
@@ -121,7 +129,7 @@ public class GBFSV2FeedController {
   }
 
   @NotNull
-  protected Object getFeed(String systemId, String feed) {
+  protected Object getFeed(String systemId, String feed, boolean useOriginalId) {
     LocalDateTime start = LocalDateTime.now();
     var feedName = GBFSFeedName.fromValue(feed);
     var feedProvider = feedProviderService.getFeedProviderBySystemId(systemId);
@@ -135,6 +143,10 @@ public class GBFSV2FeedController {
     if (data == null) {
       throwsIfFeedCouldOrShouldExist(feedName, feedProvider);
       throw new NoSuchElementException();
+    }
+
+    if (useOriginalId) {
+      data = deliveryMapper.mapSingleGbfsFeed(data, feedProvider, true);
     }
 
     LocalDateTime end = LocalDateTime.now();
