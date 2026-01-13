@@ -18,6 +18,7 @@
 
 package org.entur.lamassu.leader;
 
+import jakarta.jms.Message;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -307,7 +308,14 @@ public class FeedUpdater {
       try {
         jmsTemplate.send(
           GBFS_TO_SIRI_QUEUE,
-          session -> messageConverter.toMessage(gbfsV3Delivery.stationStatus(), session)
+          session -> {
+            Message m = messageConverter.toMessage(
+              gbfsV3Delivery.stationStatus(),
+              session
+            );
+            m.setStringProperty("systemId", feedProvider.getSystemId());
+            return m;
+          }
         );
       } catch (JmsException e) {
         logger.error("Error sending GBFS v3 delivery to broker", e);
