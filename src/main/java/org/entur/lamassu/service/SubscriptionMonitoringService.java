@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.entur.lamassu.config.KafkaConfig;
+import org.entur.lamassu.model.monitoring.InputSubscriptionData;
 import org.entur.lamassu.model.monitoring.SubscriptionMonitoring;
 import org.entur.lamassu.model.provider.FeedProvider;
 import org.jetbrains.annotations.Nullable;
@@ -55,6 +56,28 @@ public class SubscriptionMonitoringService {
       kafkaConfig.getClientName().getBytes(StandardCharsets.UTF_8)
     );
     GenericMessage<String> message = new GenericMessage<>(GSON.toJson(sm), headers);
+    template.send(message);
+  }
+
+  public void sendSubscriptionInputData(FeedProvider fp, int nbStations) {
+    if (!kafkaConfig.isKafkaEnabled()) {
+      return;
+    }
+    InputSubscriptionData isd = new InputSubscriptionData();
+    isd.setDataset(fp.getSystemId().toUpperCase());
+    isd.setNbElements(nbStations);
+    log.debug("Send input subscription data to KAFKA: {}", isd);
+    Map<String, Object> headers = new HashMap<>();
+    headers.put(KafkaHeaders.TOPIC, kafkaConfig.getSubscriptionDataTopic());
+    headers.put(
+      KafkaConfig.KAFKA_HEADERS_ENV,
+      kafkaConfig.getEnvironment().getBytes(StandardCharsets.UTF_8)
+    );
+    headers.put(
+      KafkaConfig.KAFKA_HEADERS_CLIENT,
+      kafkaConfig.getClientName().getBytes(StandardCharsets.UTF_8)
+    );
+    GenericMessage<String> message = new GenericMessage<>(GSON.toJson(isd), headers);
     template.send(message);
   }
 }

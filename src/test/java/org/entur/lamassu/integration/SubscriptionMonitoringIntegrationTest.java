@@ -11,6 +11,7 @@ import java.util.List;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.entur.lamassu.config.KafkaConfig;
+import org.entur.lamassu.model.monitoring.InputSubscriptionData;
 import org.entur.lamassu.model.monitoring.SubscriptionMonitoring;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,6 +74,52 @@ class SubscriptionMonitoringIntegrationTest extends AbstractIntegrationTestBase 
           "http://localhost:8888/testozon/gbfs".equals(sm.getProducerUrl())
         ),
       "shall contain OZON subscription monitoring data"
+    );
+  }
+
+  @Test
+  void testSubscriptionInputDataSentToKafka() {
+    // When executing this test, GBFS subscriptions are created based on configured feed providers.
+    // It queries provider URLs and shall send subscription monitoring data to KAFKA.
+    // Arrange
+    ConsumerRecords<String, String> kafkaRecords;
+    try (
+      KafkaConsumer<String, String> consumer = new KafkaConsumer<>(
+        KafkaTestUtils.consumerProps(broker.getBrokersAsString(), "test")
+      )
+    ) {
+      consumer.subscribe(Collections.singleton(kafkaConfig.getSubscriptionDataTopic()));
+      kafkaRecords = consumer.poll(Duration.ofSeconds(1));
+    }
+
+    // Act - nothing to act messages shall have been sent to KAFKA already
+
+    // Assert
+    List<InputSubscriptionData> isds = new ArrayList<>();
+    kafkaRecords.forEach(r ->
+      isds.add(GSON.fromJson(r.value(), InputSubscriptionData.class))
+    );
+
+    assertFalse(isds.isEmpty(), "should retrieve subscription input data from KAFKA");
+    assertTrue(
+      isds
+        .stream()
+        .anyMatch(sm ->
+          "TESTATLANTIS".equals(sm.getDataset()) &&
+          "GBFS".equals(sm.getDataType()) &&
+          2L == sm.getNbElements()
+        ),
+      "shall contain ATLANTIS subscription input data"
+    );
+    assertTrue(
+      isds
+        .stream()
+        .anyMatch(sm ->
+          "TESTOZON".equals(sm.getDataset()) &&
+          "GBFS".equals(sm.getDataType()) &&
+          2L == sm.getNbElements()
+        ),
+      "shall contain OZON subscription input data"
     );
   }
 }

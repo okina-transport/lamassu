@@ -25,7 +25,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.entur.gbfs.GbfsSubscriptionManager;
 import org.entur.gbfs.GbfsSubscriptionOptions;
 import org.entur.gbfs.loader.v2.GbfsV2Delivery;
@@ -41,6 +41,7 @@ import org.entur.lamassu.mapper.feedmapper.v2.GbfsV2DeliveryMapper;
 import org.entur.lamassu.mapper.feedmapper.v3.GbfsV3DeliveryMapper;
 import org.entur.lamassu.metrics.MetricsService;
 import org.entur.lamassu.model.provider.FeedProvider;
+import org.entur.lamassu.service.SubscriptionMonitoringService;
 import org.redisson.api.RBucket;
 import org.redisson.api.RList;
 import org.redisson.api.RListMultimap;
@@ -81,6 +82,7 @@ public class FeedUpdater {
   private final RegisterIncomingDataEventHandler registerIncomingDataEventHandler;
   private final JmsTemplate jmsTemplate;
   private final MessageConverter messageConverter;
+  private final SubscriptionMonitoringService subscriptionMonitoringService;
 
   @Value("${org.entur.lamassu.enableValidation:false}")
   private boolean enableValidation;
@@ -108,7 +110,8 @@ public class FeedUpdater {
     StartupCleaner startupCleaner,
     RegisterIncomingDataEventHandler registerIncomingDataEventHandler,
     JmsTemplate jmsTemplate,
-    MessageConverter messageConverter
+    MessageConverter messageConverter,
+    SubscriptionMonitoringService subscriptionMonitoringService
   ) {
     this.feedProviderConfig = feedProviderConfig;
     this.gbfsV2DeliveryMapper = gbfsV2DeliveryMapper;
@@ -123,6 +126,7 @@ public class FeedUpdater {
     this.registerIncomingDataEventHandler = registerIncomingDataEventHandler;
     this.jmsTemplate = jmsTemplate;
     this.messageConverter = messageConverter;
+    this.subscriptionMonitoringService = subscriptionMonitoringService;
   }
 
   public void start() {
@@ -181,6 +185,20 @@ public class FeedUpdater {
               );
             }
             receiveV3Update(feedProvider, gbfsV3Delivery);
+            int nbStations = 0;
+            if (
+              gbfsV3Delivery.stationStatus() != null &&
+              gbfsV3Delivery.stationStatus().getData() != null &&
+              CollectionUtils.isNotEmpty(
+                gbfsV3Delivery.stationStatus().getData().getStations()
+              )
+            ) {
+              nbStations = gbfsV3Delivery.stationStatus().getData().getStations().size();
+            }
+            subscriptionMonitoringService.sendSubscriptionInputData(
+              feedProvider,
+              nbStations
+            );
             cacheReady.set(true);
           },
           interceptor
@@ -195,6 +213,20 @@ public class FeedUpdater {
             receiveV3Update(
               feedProvider,
               GbfsFeedVersionMappers.map(gbfsV2Delivery, feedProvider.getLanguage())
+            );
+            int nbStations = 0;
+            if (
+              gbfsV2Delivery.stationStatus() != null &&
+              gbfsV2Delivery.stationStatus().getData() != null &&
+              CollectionUtils.isNotEmpty(
+                gbfsV2Delivery.stationStatus().getData().getStations()
+              )
+            ) {
+              nbStations = gbfsV2Delivery.stationStatus().getData().getStations().size();
+            }
+            subscriptionMonitoringService.sendSubscriptionInputData(
+              feedProvider,
+              nbStations
             );
             cacheReady.set(true);
           },

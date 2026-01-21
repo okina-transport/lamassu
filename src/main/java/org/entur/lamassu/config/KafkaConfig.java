@@ -15,6 +15,7 @@ public class KafkaConfig {
   private final String environment;
   private final String clientName;
   private final String subscriptionMonitoringTopic;
+  private final String subscriptionDataTopic;
 
   public KafkaConfig(
     @Value("${fr.okina.lamassu.kafka.enabled:true}") boolean isKafkaEnabled,
@@ -22,11 +23,15 @@ public class KafkaConfig {
     @Value("${fr.okina.lamassu.clientName}") String clientName,
     @Value(
       "${fr.okina.lamassu.kafka.topics.subscriptionMonitoring:tr_in_subscription_monitoring}"
-    ) String subscriptionMonitoringTopic
+    ) String subscriptionMonitoringTopic,
+    @Value(
+      "${fr.okina.lamassu.kafka.topics.subscriptionData:tr_in_subscription_data}"
+    ) String subscriptionDataTopic
   ) {
     this.isKafkaEnabled = isKafkaEnabled;
     this.environment = env;
     this.clientName = clientName;
     this.subscriptionMonitoringTopic = subscriptionMonitoringTopic;
+    this.subscriptionDataTopic = subscriptionDataTopic;
   }
 }
