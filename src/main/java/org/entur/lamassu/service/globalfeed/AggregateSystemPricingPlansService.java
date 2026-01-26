@@ -6,7 +6,6 @@ import java.util.List;
 import org.apache.commons.collections4.CollectionUtils;
 import org.entur.lamassu.cache.GBFSV3FeedCache;
 import org.entur.lamassu.config.v3.GlobalFeedConfiguration;
-import org.entur.lamassu.mapper.feedmapper.v3.GbfsV3DeliveryMapper;
 import org.entur.lamassu.model.provider.FeedProvider;
 import org.entur.lamassu.service.FeedProviderService;
 import org.mobilitydata.gbfs.v3_0.gbfs.GBFSFeed;
@@ -17,22 +16,16 @@ import org.mobilitydata.gbfs.v3_0.system_pricing_plans.GBFSSystemPricingPlans;
 
 public class AggregateSystemPricingPlansService extends AggregateFeedDataService {
 
-  protected AggregateSystemPricingPlansService(
+  public AggregateSystemPricingPlansService(
     FeedProviderService feedProviderService,
     GBFSV3FeedCache gbfsv3FeedCache,
-    GlobalFeedConfiguration globalFeedConfiguration,
-    GbfsV3DeliveryMapper gbfsV3DeliveryMapper
+    GlobalFeedConfiguration globalFeedConfiguration
   ) {
-    super(
-      feedProviderService,
-      gbfsv3FeedCache,
-      globalFeedConfiguration,
-      gbfsV3DeliveryMapper
-    );
+    super(feedProviderService, gbfsv3FeedCache, globalFeedConfiguration);
   }
 
   @Override
-  public Object buildGlobalFeed(boolean useOriginalId) {
+  public Object buildGlobalFeed() {
     List<FeedProvider> feedProviders = getFeedProviders();
     GBFSSystemPricingPlans systemPricingPlan;
     Date globalLastUpdated = null;
@@ -41,14 +34,6 @@ public class AggregateSystemPricingPlansService extends AggregateFeedDataService
     for (FeedProvider feedProvider : feedProviders) {
       systemPricingPlan =
         gbfsv3FeedCache.find(GBFSFeed.Name.SYSTEM_PRICING_PLANS, feedProvider);
-      if (useOriginalId) {
-        systemPricingPlan =
-          (GBFSSystemPricingPlans) gbfsV3DeliveryMapper.mapSingleGbfsFeed(
-            systemPricingPlan,
-            feedProvider,
-            true
-          );
-      }
       if (systemPricingPlan != null) {
         if (
           globalLastUpdated == null ||

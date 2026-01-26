@@ -18,12 +18,11 @@
 
 package org.entur.lamassu.mapper.feedmapper.v3;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
-import org.entur.lamassu.mapper.feedidmapper.v3.V3GeofencingZonesFeedIdMapper;
 import org.entur.lamassu.mapper.feedmapper.AbstractFeedMapper;
+import org.entur.lamassu.mapper.feedmapper.IdMappers;
 import org.entur.lamassu.model.provider.FeedProvider;
 import org.mobilitydata.gbfs.v3_0.geofencing_zones.*;
 import org.springframework.stereotype.Component;
@@ -33,18 +32,8 @@ public class V3GeofencingZonesFeedMapper extends AbstractFeedMapper<GBFSGeofenci
 
   private static final String TARGET_GBFS_VERSION = "3.0";
 
-  private final V3GeofencingZonesFeedIdMapper idMapper;
-
-  public V3GeofencingZonesFeedMapper(V3GeofencingZonesFeedIdMapper idMapper) {
-    this.idMapper = idMapper;
-  }
-
   @Override
-  public GBFSGeofencingZones map(
-    GBFSGeofencingZones source,
-    FeedProvider feedProvider,
-    boolean toOriginalId
-  ) {
+  public GBFSGeofencingZones map(GBFSGeofencingZones source, FeedProvider feedProvider) {
     if (source == null) {
       return null;
     }
@@ -53,62 +42,86 @@ public class V3GeofencingZonesFeedMapper extends AbstractFeedMapper<GBFSGeofenci
     mapped.setVersion(TARGET_GBFS_VERSION);
     mapped.setLastUpdated(source.getLastUpdated());
     mapped.setTtl(source.getTtl());
-    mapped.setData(mapData(source.getData()));
-
-    idMapper.mapIds(mapped, feedProvider, toOriginalId);
+    mapped.setData(mapData(source.getData(), feedProvider));
     return mapped;
   }
 
-  private GBFSData mapData(GBFSData data) {
+  private GBFSData mapData(GBFSData data, FeedProvider feedProvider) {
     var mapped = new GBFSData();
-    mapped.setGeofencingZones(mapGeofencingZones(data.getGeofencingZones()));
+    mapped.setGeofencingZones(
+      mapGeofencingZones(data.getGeofencingZones(), feedProvider)
+    );
     mapped.setGlobalRules(
       data.getGlobalRules() != null
-        ? data.getGlobalRules().stream().map(this::mapGlobalRule).toList()
+        ? data
+          .getGlobalRules()
+          .stream()
+          .map(rule -> mapGlobalRule(rule, feedProvider))
+          .toList()
         : null
     );
     return mapped;
   }
 
   private GBFSGeofencingZones__1 mapGeofencingZones(
-    GBFSGeofencingZones__1 geofencingZones
+    GBFSGeofencingZones__1 geofencingZones,
+    FeedProvider feedProvider
   ) {
     var mapped = new GBFSGeofencingZones__1();
     mapped.setType(geofencingZones.getType());
-    mapped.setFeatures(mapFeatures(geofencingZones.getFeatures()));
+    mapped.setFeatures(mapFeatures(geofencingZones.getFeatures(), feedProvider));
     return mapped;
   }
 
-  private List<GBFSFeature> mapFeatures(List<GBFSFeature> features) {
-    return features.stream().map(this::mapFeature).collect(Collectors.toList());
+  private List<GBFSFeature> mapFeatures(
+    List<GBFSFeature> features,
+    FeedProvider feedProvider
+  ) {
+    return features
+      .stream()
+      .map(feature -> mapFeature(feature, feedProvider))
+      .collect(Collectors.toList());
   }
 
-  private GBFSFeature mapFeature(GBFSFeature feature) {
+  private GBFSFeature mapFeature(GBFSFeature feature, FeedProvider feedProvider) {
     var mapped = new GBFSFeature();
     mapped.setType(feature.getType());
     mapped.setGeometry(feature.getGeometry());
-    mapped.setProperties(mapProperties(feature.getProperties()));
+    mapped.setProperties(mapProperties(feature.getProperties(), feedProvider));
     return mapped;
   }
 
-  private GBFSProperties mapProperties(GBFSProperties properties) {
+  private GBFSProperties mapProperties(
+    GBFSProperties properties,
+    FeedProvider feedProvider
+  ) {
     var mapped = new GBFSProperties();
     mapped.setName(properties.getName());
     mapped.setStart(properties.getStart());
     mapped.setEnd(properties.getEnd());
     if (CollectionUtils.isNotEmpty(properties.getRules())) {
       mapped.setRules(
-        properties.getRules().stream().map(this::mapRule).collect(Collectors.toList())
+        properties
+          .getRules()
+          .stream()
+          .map(rule -> mapRule(rule, feedProvider))
+          .collect(Collectors.toList())
       );
     }
     return mapped;
   }
 
-  private GBFSRule mapRule(GBFSRule rule) {
+  private GBFSRule mapRule(GBFSRule rule, FeedProvider feedProvider) {
     var mapped = new GBFSRule();
-    if (CollectionUtils.isNotEmpty(rule.getVehicleTypeIds())) {
-      mapped.setVehicleTypeIds(new ArrayList<>(rule.getVehicleTypeIds()));
-    }
+    mapped.setVehicleTypeIds(
+      IdMappers
+        .mapIds(
+          feedProvider.getCodespace(),
+          IdMappers.VEHICLE_TYPE_ID_TYPE,
+          rule.getVehicleTypeIds()
+        )
+        .orElse(null)
+    );
     mapped.setRideStartAllowed(rule.getRideStartAllowed());
     mapped.setRideEndAllowed(rule.getRideEndAllowed());
     mapped.setMaximumSpeedKph(rule.getMaximumSpeedKph());
@@ -117,11 +130,17 @@ public class V3GeofencingZonesFeedMapper extends AbstractFeedMapper<GBFSGeofenci
     return mapped;
   }
 
-  private GBFSGlobalRule mapGlobalRule(GBFSGlobalRule rule) {
+  private GBFSGlobalRule mapGlobalRule(GBFSGlobalRule rule, FeedProvider feedProvider) {
     var mapped = new GBFSGlobalRule();
-    if (CollectionUtils.isNotEmpty(rule.getVehicleTypeIds())) {
-      mapped.setVehicleTypeIds(new ArrayList<>(rule.getVehicleTypeIds()));
-    }
+    mapped.setVehicleTypeIds(
+      IdMappers
+        .mapIds(
+          feedProvider.getCodespace(),
+          IdMappers.VEHICLE_TYPE_ID_TYPE,
+          rule.getVehicleTypeIds()
+        )
+        .orElse(null)
+    );
     mapped.setRideStartAllowed(rule.getRideStartAllowed());
     mapped.setRideEndAllowed(rule.getRideEndAllowed());
     mapped.setMaximumSpeedKph(rule.getMaximumSpeedKph());

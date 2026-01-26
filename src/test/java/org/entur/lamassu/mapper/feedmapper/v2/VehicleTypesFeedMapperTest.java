@@ -19,9 +19,7 @@
 package org.entur.lamassu.mapper.feedmapper.v2;
 
 import java.util.List;
-import org.entur.lamassu.mapper.feedidmapper.v2.VehicleTypesFeedIdMapper;
 import org.entur.lamassu.model.provider.FeedProvider;
-import org.entur.lamassu.service.idmapping.EnturIdMappingService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mobilitydata.gbfs.v2_3.vehicle_types.GBFSVehicleType;
@@ -31,14 +29,12 @@ class VehicleTypesFeedMapperTest {
 
   @Test
   void testCustomVehicleTypes() {
-    var mapper = new VehicleTypesFeedMapper(
-      new VehicleTypesFeedIdMapper(new EnturIdMappingService())
-    );
+    var mapper = new VehicleTypesFeedMapper();
     ReflectionTestUtils.setField(mapper, "targetGbfsVersion", "2.2");
-    var feed = mapper.map(null, getTestProvider(), false);
+    var feed = mapper.map(null, getTestProvider());
     Assertions.assertEquals(
-      "TestScooter",
-      feed.getData().getVehicleTypes().getFirst().getVehicleTypeId()
+      "TST:VehicleType:TestScooter",
+      feed.getData().getVehicleTypes().get(0).getVehicleTypeId()
     );
   }
 

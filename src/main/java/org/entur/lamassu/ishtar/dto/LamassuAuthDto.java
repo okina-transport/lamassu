@@ -1,4 +1,4 @@
-package org.entur.lamassu.client.ishtar.dto;
+package org.entur.lamassu.ishtar.dto;
 
 import java.util.Map;
 import lombok.Data;

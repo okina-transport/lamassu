@@ -19,7 +19,6 @@
 package org.entur.lamassu.mapper.feedmapper.v3;
 
 import java.util.List;
-import org.entur.lamassu.mapper.feedidmapper.v3.V3SystemInformationFeedIdMapper;
 import org.entur.lamassu.mapper.feedmapper.AbstractFeedMapper;
 import org.entur.lamassu.model.provider.FeedProvider;
 import org.mobilitydata.gbfs.v3_0.system_information.GBFSData;
@@ -40,17 +39,10 @@ public class V3SystemInformationFeedMapper
   @Value("${org.entur.lamassu.defaultTimeZone:Europe/Oslo}")
   private String defaultTimeZone;
 
-  private final V3SystemInformationFeedIdMapper idMapper;
-
-  public V3SystemInformationFeedMapper(V3SystemInformationFeedIdMapper idMapper) {
-    this.idMapper = idMapper;
-  }
-
   @Override
   public GBFSSystemInformation map(
     GBFSSystemInformation source,
-    FeedProvider feedProvider,
-    boolean toOriginalId
+    FeedProvider feedProvider
   ) {
     if (source == null) {
       logger.warn("System information feed was null for provider={}", feedProvider);
@@ -62,8 +54,6 @@ public class V3SystemInformationFeedMapper
     mapped.setLastUpdated(source.getLastUpdated());
     mapped.setTtl(source.getTtl());
     mapped.setData(mapData(source.getData(), feedProvider));
-
-    idMapper.mapIds(mapped, feedProvider, toOriginalId);
     return mapped;
   }
 

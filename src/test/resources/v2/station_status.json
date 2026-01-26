@@ -5,26 +5,26 @@
   "data": {
     "stations": [
       {
-        "station_id": "1",
+        "station_id": "TST:Station:1",
         "is_installed": true,
         "is_renting": true,
         "is_returning": true,
         "last_reported": 1434054678,
         "num_docks_available": 3,
         "vehicle_docks_available": [{
-          "vehicle_type_ids": ["Scooter"],
+          "vehicle_type_ids": ["TST:VehicleType:Scooter"],
           "count": 2
         }, {
-          "vehicle_type_ids": ["CityBike"],
+          "vehicle_type_ids": ["TST:VehicleType:CityBike"],
           "count": 1
         }],
         "num_bikes_available": 1,
         "num_bikes_disabled": 2,
         "vehicle_types_available": [{
-          "vehicle_type_id": "Scooter",
+          "vehicle_type_id": "TST:VehicleType:Scooter",
           "count": 1
         }, {
-          "vehicle_type_id": "CityBike",
+          "vehicle_type_id": "TST:VehicleType:CityBike",
           "count": 0
         }]
       }, {
@@ -35,18 +35,18 @@
         "last_reported": 1434054678,
         "num_docks_available": 8,
         "vehicle_docks_available": [{
-          "vehicle_type_ids": ["Scooter"],
+          "vehicle_type_ids": ["TST:VehicleType:Scooter"],
           "count": 6
         }, {
-          "vehicle_type_ids": ["CityBike"],
+          "vehicle_type_ids": ["TST:VehicleType:CityBike"],
           "count": 2
         }],
         "num_bikes_available": 6,
         "vehicle_types_available": [{
-          "vehicle_type_id": "Scooter",
+          "vehicle_type_id": "TST:VehicleType:Scooter",
           "count": 2
         }, {
-          "vehicle_type_id": "CityBike",
+          "vehicle_type_id": "TST:VehicleType:CityBike",
           "count": 4
         }]
       }

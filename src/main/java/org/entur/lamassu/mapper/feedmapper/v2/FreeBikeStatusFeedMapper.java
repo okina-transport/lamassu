@@ -18,9 +18,13 @@
 
 package org.entur.lamassu.mapper.feedmapper.v2;
 
+import static org.entur.lamassu.mapper.feedmapper.IdMappers.mapPricingPlanId;
+import static org.entur.lamassu.mapper.feedmapper.IdMappers.mapStationId;
+import static org.entur.lamassu.mapper.feedmapper.IdMappers.mapVehicleTypeId;
+
 import java.util.stream.Collectors;
-import org.entur.lamassu.mapper.feedidmapper.v2.FreeBikeStatusFeedIdMapper;
 import org.entur.lamassu.mapper.feedmapper.AbstractFeedMapper;
+import org.entur.lamassu.mapper.feedmapper.IdMappers;
 import org.entur.lamassu.model.provider.FeedProvider;
 import org.mobilitydata.gbfs.v2_3.free_bike_status.GBFSBike;
 import org.mobilitydata.gbfs.v2_3.free_bike_status.GBFSData;
@@ -31,24 +35,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class FreeBikeStatusFeedMapper extends AbstractFeedMapper<GBFSFreeBikeStatus> {
 
-  private final String targetGbfsVersion;
-
-  private final FreeBikeStatusFeedIdMapper idMapper;
-
-  public FreeBikeStatusFeedMapper(
-    @Value("${org.entur.lamassu.targetGbfsVersion:2.2}") String targetGbfsVersion,
-    FreeBikeStatusFeedIdMapper idMapper
-  ) {
-    this.targetGbfsVersion = targetGbfsVersion;
-    this.idMapper = idMapper;
-  }
+  @Value("${org.entur.lamassu.targetGbfsVersion:2.2}")
+  private String targetGbfsVersion;
 
   @Override
-  public GBFSFreeBikeStatus map(
-    GBFSFreeBikeStatus source,
-    FeedProvider feedProvider,
-    boolean toOriginalId
-  ) {
+  public GBFSFreeBikeStatus map(GBFSFreeBikeStatus source, FeedProvider feedProvider) {
     if (source == null) {
       return null;
     }
@@ -57,14 +48,28 @@ public class FreeBikeStatusFeedMapper extends AbstractFeedMapper<GBFSFreeBikeSta
     mapped.setVersion(targetGbfsVersion);
     mapped.setLastUpdated(source.getLastUpdated());
     mapped.setTtl(source.getTtl());
-    mapped.setData(mapData(source.getData()));
-
-    idMapper.mapIds(mapped, feedProvider, toOriginalId);
+    mapped.setData(mapData(source.getData(), feedProvider));
     return mapped;
   }
 
-  private GBFSData mapData(GBFSData data) {
+  private GBFSData mapData(GBFSData data, FeedProvider feedProvider) {
     var mapped = new GBFSData();
+
+    data
+      .getBikes()
+      .stream()
+      .filter(bike -> bike.getBikeId() != null)
+      .forEach(bike ->
+        bike.setBikeId(
+          bike
+            .getBikeId()
+            .replace(" ", "_")
+            .replace("(", "_")
+            .replace(")", "_")
+            .replace("é", "_")
+            .replace("à", "_")
+        )
+      );
 
     mapped.setBikes(
       data
@@ -73,28 +78,33 @@ public class FreeBikeStatusFeedMapper extends AbstractFeedMapper<GBFSFreeBikeSta
         .filter(bike ->
           (bike.getLon() != null && bike.getLat() != null) || bike.getStationId() != null
         )
-        .map(this::mapBike)
+        .map(bike -> mapBike(bike, feedProvider))
         .collect(Collectors.toList())
     );
-
     return mapped;
   }
 
-  protected GBFSBike mapBike(GBFSBike bike) {
+  protected GBFSBike mapBike(GBFSBike bike, FeedProvider feedProvider) {
     var mapped = new GBFSBike();
-    mapped.setBikeId(bike.getBikeId());
+    mapped.setBikeId(
+      IdMappers.mapId(
+        feedProvider.getCodespace(),
+        IdMappers.BIKE_ID_TYPE,
+        bike.getBikeId()
+      )
+    );
     mapped.setLat(bike.getLat());
     mapped.setLon(bike.getLon());
     mapped.setIsReserved(bike.getIsReserved());
     mapped.setIsDisabled(bike.getIsDisabled());
     mapped.setRentalUris(bike.getRentalUris());
-    mapped.setVehicleTypeId(bike.getVehicleTypeId());
+    mapped.setVehicleTypeId(mapVehicleTypeId(bike.getVehicleTypeId(), feedProvider));
     mapped.setLastReported(bike.getLastReported());
     mapped.setCurrentRangeMeters(bike.getCurrentRangeMeters());
     mapped.setCurrentFuelPercent(bike.getCurrentFuelPercent());
-    mapped.setStationId(bike.getStationId());
-    mapped.setHomeStationId(bike.getHomeStationId());
-    mapped.setPricingPlanId(bike.getPricingPlanId());
+    mapped.setStationId(mapStationId(bike.getStationId(), feedProvider));
+    mapped.setHomeStationId(mapStationId(bike.getHomeStationId(), feedProvider));
+    mapped.setPricingPlanId(mapPricingPlanId(bike.getPricingPlanId(), feedProvider));
     mapped.setVehicleEquipment(bike.getVehicleEquipment());
     mapped.setAvailableUntil(bike.getAvailableUntil());
     return mapped;

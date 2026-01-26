@@ -24,13 +24,8 @@ import org.entur.lamassu.model.provider.FeedProvider;
 public abstract class AbstractFeedMapper<T> implements FeedMapper<T> {
 
   @Override
-  public T map(
-    T source,
-    FeedProvider feedProvider,
-    boolean toOriginalId,
-    Consumer<T> postProcessor
-  ) {
-    var mapped = map(source, feedProvider, toOriginalId);
+  public T map(T source, FeedProvider feedProvider, Consumer<T> postProcessor) {
+    var mapped = map(source, feedProvider);
     if (mapped != null) {
       postProcessor.accept(mapped);
     }

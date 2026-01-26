@@ -5,7 +5,6 @@ import java.util.Date;
 import java.util.List;
 import org.entur.lamassu.cache.GBFSV3FeedCache;
 import org.entur.lamassu.config.v3.GlobalFeedConfiguration;
-import org.entur.lamassu.mapper.feedmapper.v3.GbfsV3DeliveryMapper;
 import org.entur.lamassu.service.FeedProviderService;
 import org.mobilitydata.gbfs.v3_0.gbfs.GBFSData;
 import org.mobilitydata.gbfs.v3_0.gbfs.GBFSFeed;
@@ -14,25 +13,19 @@ import org.mobilitydata.gbfs.v3_0.gbfs_versions.GBFSVersion;
 
 public class AggregateGBFSService extends AggregateFeedDataService {
 
-  protected AggregateGBFSService(
+  public AggregateGBFSService(
     FeedProviderService feedProviderService,
     GBFSV3FeedCache gbfsv3FeedCache,
-    GlobalFeedConfiguration globalFeedConfiguration,
-    GbfsV3DeliveryMapper gbfsV3DeliveryMapper
+    GlobalFeedConfiguration globalFeedConfiguration
   ) {
-    super(
-      feedProviderService,
-      gbfsv3FeedCache,
-      globalFeedConfiguration,
-      gbfsV3DeliveryMapper
-    );
+    super(feedProviderService, gbfsv3FeedCache, globalFeedConfiguration);
   }
 
   @Override
-  public Object buildGlobalFeed(boolean useOriginalId) {
+  public Object buildGlobalFeed() {
     List<GBFSFeed> data = new ArrayList<>();
     for (GBFSFeed.Name feed : GBFSFeed.Name.values()) {
-      data.add(new GBFSFeed().withName(feed).withUrl(buildFeedUrl(feed, useOriginalId)));
+      data.add(new GBFSFeed().withName(feed).withUrl(buildFeedUrl(feed)));
     }
     return new GBFSGbfs()
       .withData(new GBFSData().withFeeds(data))
@@ -41,16 +34,13 @@ public class AggregateGBFSService extends AggregateFeedDataService {
       .withLastUpdated(new Date());
   }
 
-  private String buildFeedUrl(GBFSFeed.Name feed, boolean useOriginalId) {
-    String feedUrl =
+  private String buildFeedUrl(GBFSFeed.Name feed) {
+    return (
       globalFeedConfiguration.getHostUrl() +
       "/gbfs/v3/aggregate/" +
       gbfsModality.getValue() +
       "/" +
-      feed;
-    if (useOriginalId) {
-      feedUrl += "?useOriginalId=true";
-    }
-    return feedUrl;
+      feed
+    );
   }
 }

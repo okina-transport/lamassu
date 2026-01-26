@@ -25,7 +25,6 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
 import org.entur.lamassu.cache.GBFSV3FeedCache;
 import org.entur.lamassu.config.v3.GlobalFeedConfiguration;
-import org.entur.lamassu.mapper.feedmapper.v3.GbfsV3DeliveryMapper;
 import org.entur.lamassu.model.discovery.SystemDiscovery;
 import org.entur.lamassu.model.provider.FeedProvider;
 import org.entur.lamassu.model.provider.GbfsModality;
@@ -45,7 +44,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
@@ -62,7 +64,6 @@ public class GBFSV3FeedController {
   private final GBFSV3FeedCache v3FeedCache;
   private final GlobalFeedProviderService globalFeedProviderService;
   private final GlobalFeedConfiguration globalFeedConfiguration;
-  private final GbfsV3DeliveryMapper deliveryMapper;
 
   @Autowired
   public GBFSV3FeedController(
@@ -70,25 +71,18 @@ public class GBFSV3FeedController {
     GBFSV3FeedCache v3FeedCache,
     FeedProviderService feedProviderService,
     GlobalFeedProviderService globalFeedProviderService,
-    GlobalFeedConfiguration globalFeedConfiguration,
-    GbfsV3DeliveryMapper deliveryMapper
+    GlobalFeedConfiguration globalFeedConfiguration
   ) {
     this.v3FeedCache = v3FeedCache;
     this.systemDiscoveryService = systemDiscoveryService;
     this.feedProviderService = feedProviderService;
     this.globalFeedProviderService = globalFeedProviderService;
     this.globalFeedConfiguration = globalFeedConfiguration;
-    this.deliveryMapper = deliveryMapper;
   }
 
   @GetMapping({ "", "/" })
-  public ResponseEntity<SystemDiscovery> getFeedProviderDiscovery(
-    @RequestParam(name = "useOriginalId", defaultValue = "false") boolean useOriginalId
-  ) {
-    var data = systemDiscoveryService.getSystemDiscovery(
-      GBFSVersion.Version._3_0,
-      useOriginalId
-    );
+  public ResponseEntity<SystemDiscovery> getFeedProviderDiscovery() {
+    var data = systemDiscoveryService.getSystemDiscovery(GBFSVersion.Version._3_0);
     return ResponseEntity
       .ok()
       .cacheControl(CacheControl.maxAge(60, TimeUnit.MINUTES).cachePublic())
@@ -96,10 +90,8 @@ public class GBFSV3FeedController {
   }
 
   @GetMapping("/manifest.json")
-  public ResponseEntity<GBFSManifest> getV3Manifest(
-    @RequestParam(name = "useOriginalId", defaultValue = "false") boolean useOriginalId
-  ) {
-    var manifest = systemDiscoveryService.getGBFSManifest(useOriginalId);
+  public ResponseEntity<GBFSManifest> getV3Manifest() {
+    var manifest = systemDiscoveryService.getGBFSManifest();
 
     return ResponseEntity
       .ok()
@@ -110,13 +102,12 @@ public class GBFSV3FeedController {
   @GetMapping(value = { "/{systemId}/{feed}", "/{systemId}/{feed}.json" })
   public ResponseEntity<Object> getV3Feed(
     @PathVariable String systemId,
-    @PathVariable String feed,
-    @RequestParam(name = "useOriginalId", defaultValue = "false") boolean useOriginalId
+    @PathVariable String feed
   ) {
     try {
       var feedName = GBFSFeed.Name.fromValue(feed);
 
-      var data = getFeed(systemId, feed, useOriginalId);
+      var data = getFeed(systemId, feed);
 
       return ResponseEntity
         .ok()
@@ -152,22 +143,21 @@ public class GBFSV3FeedController {
   }
 
   @GetMapping(value = { "/aggregate/{mode}/{feed}", "/aggregate/{mode}/{feed}.json" })
-  public ResponseEntity<Object> getV3FeedAggregated(
+  public ResponseEntity<Object> getV3Feed(
     @PathVariable GbfsModality mode,
-    @PathVariable String feed,
-    @RequestParam(name = "useOriginalId", defaultValue = "false") boolean useOriginalId
+    @PathVariable String feed
   ) {
     if (globalFeedConfiguration.isEnabled()) {
       return ResponseEntity
         .ok()
-        .body(globalFeedProviderService.getGlobalFeed(mode, feed, useOriginalId));
+        .body(globalFeedProviderService.getGlobalFeed(mode, feed));
     } else {
       return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
   }
 
   @NotNull
-  protected Object getFeed(String systemId, String feed, boolean useOriginalId) {
+  protected Object getFeed(String systemId, String feed) {
     LocalDateTime start = LocalDateTime.now();
     var feedName = GBFSFeed.Name.fromValue(feed);
     var feedProvider = feedProviderService.getFeedProviderBySystemId(systemId);
@@ -181,10 +171,6 @@ public class GBFSV3FeedController {
     if (data == null) {
       throwsIfFeedCouldOrShouldExist(feedName, feedProvider);
       throw new NoSuchElementException();
-    }
-
-    if (useOriginalId) {
-      data = deliveryMapper.mapSingleGbfsFeed(data, feedProvider, true);
     }
 
     LocalDateTime end = LocalDateTime.now();

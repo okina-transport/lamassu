@@ -39,14 +39,14 @@ class DiscoveryFeedMapperTest {
 
   @BeforeEach
   void prepare() {
-    mapper = new DiscoveryFeedMapper("http://www.ceflimestenfaitunflimsurlecyclimse.fr");
+    mapper = new DiscoveryFeedMapper();
   }
 
   @Test
   void testMapFeedWhenSourceFeedsDataIsNullReturnsNull() {
     var gbfs = new GBFS();
     gbfs.setFeedsData(null);
-    Assertions.assertNull(mapper.map(gbfs, getTestProvider(), false));
+    Assertions.assertNull(mapper.map(gbfs, getTestProvider()));
   }
 
   @Test
@@ -83,7 +83,7 @@ class DiscoveryFeedMapperTest {
 
     gbfs.setFeedsData(Map.of("en", feeds));
 
-    var mapped = mapper.map(gbfs, feedProvider, false);
+    var mapped = mapper.map(gbfs, feedProvider);
 
     Assertions.assertTrue(
       mapped
@@ -107,7 +107,6 @@ class DiscoveryFeedMapperTest {
   private FeedProvider getTestProvider() {
     var feedProvider = new FeedProvider();
     feedProvider.setSystemId("testsystem");
-    feedProvider.setUrl("http://www.ceflimnestpasunflimsurlecyclimse.fr");
     feedProvider.setCodespace("TST");
     feedProvider.setLanguage("en");
 

@@ -18,14 +18,17 @@
 
 package org.entur.lamassu.mapper.feedmapper.v3;
 
+import static org.entur.lamassu.mapper.feedmapper.IdMappers.PRICING_PLAN_ID_TYPE;
+
 import java.util.List;
 import java.util.stream.Collectors;
-import org.entur.lamassu.mapper.feedidmapper.v3.V3SystemPricingPlansFeedIdMapper;
 import org.entur.lamassu.mapper.feedmapper.AbstractFeedMapper;
+import org.entur.lamassu.mapper.feedmapper.IdMappers;
 import org.entur.lamassu.model.provider.FeedProvider;
 import org.mobilitydata.gbfs.v3_0.system_pricing_plans.GBFSData;
 import org.mobilitydata.gbfs.v3_0.system_pricing_plans.GBFSPlan;
 import org.mobilitydata.gbfs.v3_0.system_pricing_plans.GBFSSystemPricingPlans;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -34,17 +37,13 @@ public class V3SystemPricingPlansFeedMapper
 
   private static final String TARGET_GBFS_VERSION = "3.0";
 
-  private final V3SystemPricingPlansFeedIdMapper idMapper;
-
-  public V3SystemPricingPlansFeedMapper(V3SystemPricingPlansFeedIdMapper idMapper) {
-    this.idMapper = idMapper;
-  }
+  @Value("${org.entur.lamassu.targetGbfsVersion:2.2}")
+  private String targetGbfsVersion;
 
   @Override
   public GBFSSystemPricingPlans map(
     GBFSSystemPricingPlans source,
-    FeedProvider feedProvider,
-    boolean toOriginalId
+    FeedProvider feedProvider
   ) {
     // TODO should we support custom pricing plans?
     //if (feedProvider.getPricingPlans() != null) {
@@ -61,26 +60,29 @@ public class V3SystemPricingPlansFeedMapper
     mapped.setVersion(TARGET_GBFS_VERSION);
     mapped.setTtl(source.getTtl());
     mapped.setLastUpdated(source.getLastUpdated());
-    mapped.setData(mapData(source.getData()));
-
-    idMapper.mapIds(mapped, feedProvider, toOriginalId);
+    mapped.setData(mapData(source.getData(), feedProvider));
     return mapped;
   }
 
-  private GBFSData mapData(GBFSData data) {
+  private GBFSData mapData(GBFSData data, FeedProvider feedProvider) {
     var mapped = new GBFSData();
-    var plans = mapPlans(data.getPlans());
+    var plans = mapPlans(data.getPlans(), feedProvider);
     mapped.setPlans(plans);
     return mapped;
   }
 
-  private List<GBFSPlan> mapPlans(List<GBFSPlan> plans) {
-    return plans.stream().map(this::mapPlan).collect(Collectors.toList());
+  private List<GBFSPlan> mapPlans(List<GBFSPlan> plans, FeedProvider feedProvider) {
+    return plans
+      .stream()
+      .map(plan -> mapPlan(plan, feedProvider))
+      .collect(Collectors.toList());
   }
 
-  private GBFSPlan mapPlan(GBFSPlan plan) {
+  private GBFSPlan mapPlan(GBFSPlan plan, FeedProvider feedProvider) {
     var mapped = new GBFSPlan();
-    mapped.setPlanId(plan.getPlanId());
+    mapped.setPlanId(
+      IdMappers.mapId(feedProvider.getCodespace(), PRICING_PLAN_ID_TYPE, plan.getPlanId())
+    );
     mapped.setUrl(plan.getUrl());
     mapped.setName(plan.getName());
     mapped.setDescription(plan.getDescription());

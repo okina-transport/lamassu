@@ -18,12 +18,18 @@
 
 package org.entur.lamassu.mapper.feedmapper.v2;
 
+import static org.entur.lamassu.mapper.feedmapper.IdMappers.mapRegionId;
+
 import java.util.List;
 import java.util.stream.Collectors;
-import org.entur.lamassu.mapper.feedidmapper.v2.StationInformationFeedIdMapper;
 import org.entur.lamassu.mapper.feedmapper.AbstractFeedMapper;
+import org.entur.lamassu.mapper.feedmapper.IdMappers;
 import org.entur.lamassu.model.provider.FeedProvider;
-import org.mobilitydata.gbfs.v2_3.station_information.*;
+import org.mobilitydata.gbfs.v2_3.station_information.GBFSData;
+import org.mobilitydata.gbfs.v2_3.station_information.GBFSStation;
+import org.mobilitydata.gbfs.v2_3.station_information.GBFSStationInformation;
+import org.mobilitydata.gbfs.v2_3.station_information.GBFSVehicleCapacity;
+import org.mobilitydata.gbfs.v2_3.station_information.GBFSVehicleTypeCapacity;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -34,17 +40,10 @@ public class StationInformationFeedMapper
   @Value("${org.entur.lamassu.targetGbfsVersion:2.2}")
   private String targetGbfsVersion;
 
-  private final StationInformationFeedIdMapper idMapper;
-
-  public StationInformationFeedMapper(StationInformationFeedIdMapper idMapper) {
-    this.idMapper = idMapper;
-  }
-
   @Override
   public GBFSStationInformation map(
     GBFSStationInformation source,
-    FeedProvider feedProvider,
-    boolean toOriginalId
+    FeedProvider feedProvider
   ) {
     if (source == null) {
       return null;
@@ -54,32 +53,35 @@ public class StationInformationFeedMapper
     mapped.setVersion(targetGbfsVersion);
     mapped.setLastUpdated(source.getLastUpdated());
     mapped.setTtl(source.getTtl());
-    mapped.setData(mapData(source.getData()));
-
-    idMapper.mapIds(mapped, feedProvider, toOriginalId);
+    mapped.setData(mapData(source.getData(), feedProvider.getCodespace()));
     return mapped;
   }
 
-  private GBFSData mapData(GBFSData data) {
+  private GBFSData mapData(GBFSData data, String codespace) {
     var mapped = new GBFSData();
-    mapped.setStations(mapStations(data.getStations()));
+    mapped.setStations(mapStations(data.getStations(), codespace));
     return mapped;
   }
 
-  private List<GBFSStation> mapStations(List<GBFSStation> stations) {
-    return stations.stream().map(this::mapStation).collect(Collectors.toList());
+  private List<GBFSStation> mapStations(List<GBFSStation> stations, String codespace) {
+    return stations
+      .stream()
+      .map(station -> mapStation(station, codespace))
+      .collect(Collectors.toList());
   }
 
-  private GBFSStation mapStation(GBFSStation gbfsStation) {
+  private GBFSStation mapStation(GBFSStation gbfsStation, String codespace) {
     var mapped = new GBFSStation();
-    mapped.setStationId(gbfsStation.getStationId());
+    mapped.setStationId(
+      IdMappers.mapId(codespace, IdMappers.STATION_ID_TYPE, gbfsStation.getStationId())
+    );
     mapped.setName(gbfsStation.getName());
     mapped.setShortName(gbfsStation.getShortName());
     mapped.setLat(gbfsStation.getLat());
     mapped.setLon(gbfsStation.getLon());
     mapped.setAddress(gbfsStation.getAddress());
     mapped.setCrossStreet(gbfsStation.getCrossStreet());
-    mapped.setRegionId(gbfsStation.getRegionId());
+    mapped.setRegionId(mapRegionId(codespace, gbfsStation.getRegionId()));
     mapped.setPostCode(gbfsStation.getPostCode());
     mapped.setRentalMethods(gbfsStation.getRentalMethods());
     mapped.setIsVirtualStation(gbfsStation.getIsVirtualStation());
@@ -88,9 +90,11 @@ public class StationInformationFeedMapper
     mapped.setParkingHoop(gbfsStation.getParkingHoop());
     mapped.setContactPhone(gbfsStation.getContactPhone());
     mapped.setCapacity(gbfsStation.getCapacity());
-    mapped.setVehicleCapacity(mapVehicleCapacity(gbfsStation.getVehicleCapacity()));
+    mapped.setVehicleCapacity(
+      mapVehicleCapacity(gbfsStation.getVehicleCapacity(), codespace)
+    );
     mapped.setVehicleTypeCapacity(
-      mapVehicleTypeCapacity(gbfsStation.getVehicleTypeCapacity())
+      mapVehicleTypeCapacity(gbfsStation.getVehicleTypeCapacity(), codespace)
     );
     mapped.setIsValetStation(gbfsStation.getIsValetStation());
     mapped.setIsChargingStation(gbfsStation.getIsChargingStation());
@@ -98,25 +102,43 @@ public class StationInformationFeedMapper
     return mapped;
   }
 
-  private GBFSVehicleCapacity mapVehicleCapacity(GBFSVehicleCapacity vehicleCapacity) {
+  private GBFSVehicleCapacity mapVehicleCapacity(
+    GBFSVehicleCapacity vehicleCapacity,
+    String codespace
+  ) {
     if (vehicleCapacity == null) {
       return null;
     }
 
     var mapped = new GBFSVehicleCapacity();
-    vehicleCapacity.getAdditionalProperties().forEach(mapped::setAdditionalProperty);
+    vehicleCapacity
+      .getAdditionalProperties()
+      .forEach((key, value) ->
+        mapped.setAdditionalProperty(
+          IdMappers.mapId(codespace, IdMappers.VEHICLE_TYPE_ID_TYPE, key),
+          value
+        )
+      );
     return mapped;
   }
 
   private GBFSVehicleTypeCapacity mapVehicleTypeCapacity(
-    GBFSVehicleTypeCapacity vehicleTypeCapacity
+    GBFSVehicleTypeCapacity vehicleTypeCapacity,
+    String codespace
   ) {
     if (vehicleTypeCapacity == null) {
       return null;
     }
 
     var mapped = new GBFSVehicleTypeCapacity();
-    vehicleTypeCapacity.getAdditionalProperties().forEach(mapped::setAdditionalProperty);
+    vehicleTypeCapacity
+      .getAdditionalProperties()
+      .forEach((key, value) ->
+        mapped.setAdditionalProperty(
+          IdMappers.mapId(codespace, IdMappers.VEHICLE_TYPE_ID_TYPE, key),
+          value
+        )
+      );
     return mapped;
   }
 }

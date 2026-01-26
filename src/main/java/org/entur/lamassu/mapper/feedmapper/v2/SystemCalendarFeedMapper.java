@@ -31,11 +31,7 @@ public class SystemCalendarFeedMapper extends AbstractFeedMapper<GBFSSystemCalen
   private String targetGbfsVersion;
 
   @Override
-  public GBFSSystemCalendar map(
-    GBFSSystemCalendar source,
-    FeedProvider feedProvider,
-    boolean toOriginalId
-  ) {
+  public GBFSSystemCalendar map(GBFSSystemCalendar source, FeedProvider feedProvider) {
     if (source == null) {
       return null;
     }

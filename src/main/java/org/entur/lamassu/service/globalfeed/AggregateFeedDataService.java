@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.Setter;
 import org.entur.lamassu.cache.GBFSV3FeedCache;
 import org.entur.lamassu.config.v3.GlobalFeedConfiguration;
-import org.entur.lamassu.mapper.feedmapper.v3.GbfsV3DeliveryMapper;
 import org.entur.lamassu.model.provider.FeedProvider;
 import org.entur.lamassu.model.provider.GbfsModality;
 import org.entur.lamassu.service.FeedProviderService;
@@ -20,8 +19,6 @@ public abstract class AggregateFeedDataService {
 
   protected final GlobalFeedConfiguration globalFeedConfiguration;
 
-  protected final GbfsV3DeliveryMapper gbfsV3DeliveryMapper;
-
   @Setter
   @Getter
   protected GbfsModality gbfsModality = GbfsModality.GLOBAL;
@@ -29,16 +26,14 @@ public abstract class AggregateFeedDataService {
   protected AggregateFeedDataService(
     FeedProviderService feedProviderService,
     GBFSV3FeedCache gbfsv3FeedCache,
-    GlobalFeedConfiguration globalFeedConfiguration,
-    GbfsV3DeliveryMapper gbfsV3DeliveryMapper
+    GlobalFeedConfiguration globalFeedConfiguration
   ) {
     this.feedProviderService = feedProviderService;
     this.gbfsv3FeedCache = gbfsv3FeedCache;
     this.globalFeedConfiguration = globalFeedConfiguration;
-    this.gbfsV3DeliveryMapper = gbfsV3DeliveryMapper;
   }
 
-  public abstract Object buildGlobalFeed(boolean useOriginalId);
+  public abstract Object buildGlobalFeed();
 
   protected List<FeedProvider> getFeedProviders() {
     List<FeedProvider> feedProviders = feedProviderService.getFeedProviders();

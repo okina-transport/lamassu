@@ -18,10 +18,25 @@
 
 package org.entur.lamassu.mapper.feedmapper;
 
-import java.util.function.Consumer;
-import org.entur.lamassu.model.provider.FeedProvider;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
-public interface FeedMapper<T> {
-  T map(T source, FeedProvider feedProvider);
-  T map(T source, FeedProvider feedProvider, Consumer<T> postProcessor);
+class IdMappersTest {
+
+  @Test
+  void testMapIdWhenValueCannotBeMapped() {
+    Assertions.assertNull(IdMappers.mapId("TST", "Type", null));
+    Assertions.assertEquals("", IdMappers.mapId("TST", "Type", ""));
+    Assertions.assertEquals(" ", IdMappers.mapId("TST", "Type", " "));
+  }
+
+  @Test
+  void testMapId() {
+    Assertions.assertEquals("TST:Type:1", IdMappers.mapId("TST", "Type", "TST:Type:1"));
+    Assertions.assertEquals("TST:Type:1", IdMappers.mapId("TST", "Type", "1"));
+    Assertions.assertEquals(
+      "TST:Type:BikeRack Lavoisier",
+      IdMappers.mapId("TST", "Type", "BikeRack Lavoisier")
+    );
+  }
 }

@@ -13,7 +13,6 @@ import org.entur.lamassu.model.provider.FeedProvider;
 import org.entur.lamassu.model.provider.GbfsModality;
 import org.entur.lamassu.service.FeedProviderService;
 import org.entur.lamassu.service.SystemDiscoveryService;
-import org.entur.lamassu.service.idmapping.IdMappingService;
 import org.entur.lamassu.util.FeedUrlUtil;
 import org.jetbrains.annotations.NotNull;
 import org.mobilitydata.gbfs.v2_3.gbfs.GBFSFeedName;
@@ -33,7 +32,6 @@ public class SystemDiscoveryServiceImpl implements SystemDiscoveryService {
   private final GlobalFeedConfiguration globalFeedConfiguration;
   private final String baseUrl;
   private final boolean enableGbfsV3ToV2Mapping;
-  private final IdMappingService idMappingService;
 
   public SystemDiscoveryServiceImpl(
     FeedProviderService feedProviderService,
@@ -42,47 +40,30 @@ public class SystemDiscoveryServiceImpl implements SystemDiscoveryService {
     @Value("${org.entur.lamassu.baseUrl}") String baseUrl,
     @Value(
       "${fr.okina.lamassu.enableGbfsV3ToV2Mapping:false}"
-    ) boolean enableGbfsV3ToV2Mapping,
-    IdMappingService idMappingService
+    ) boolean enableGbfsV3ToV2Mapping
   ) {
     this.feedProviderService = feedProviderService;
     this.systemDiscoveryMapper = systemDiscoveryMapper;
     this.globalFeedConfiguration = globalFeedConfiguration;
     this.baseUrl = baseUrl;
     this.enableGbfsV3ToV2Mapping = enableGbfsV3ToV2Mapping;
-    this.idMappingService = idMappingService;
   }
 
-  @Override
-  public SystemDiscovery getSystemDiscovery(
-    GBFSVersion.Version version,
-    boolean originalId
-  ) {
+  public SystemDiscovery getSystemDiscovery(GBFSVersion.Version version) {
     // recomputed every time
-    return mapSystemDiscovery(
-      feedProviderService,
-      systemDiscoveryMapper,
-      version,
-      originalId
-    );
+    return mapSystemDiscovery(feedProviderService, systemDiscoveryMapper, version);
   }
 
   @Override
-  public GBFSManifest getGBFSManifest(boolean originalId) {
-    return mapGBFSManifest(
-      feedProviderService,
-      baseUrl,
-      enableGbfsV3ToV2Mapping,
-      originalId
-    );
+  public GBFSManifest getGBFSManifest() {
+    return mapGBFSManifest(feedProviderService, baseUrl, enableGbfsV3ToV2Mapping);
   }
 
   @NotNull
   private SystemDiscovery mapSystemDiscovery(
     FeedProviderService feedProviderService,
     SystemDiscoveryMapper systemDiscoveryMapper,
-    GBFSVersion.Version version,
-    boolean toOriginalId
+    GBFSVersion.Version version
   ) {
     List<FeedProvider> feedProviders = feedProviderService.getFeedProviders();
     if (!this.enableGbfsV3ToV2Mapping && (version == GBFSVersion.Version._2_3)) {
@@ -97,8 +78,7 @@ public class SystemDiscoveryServiceImpl implements SystemDiscoveryService {
           systemDiscoveryMapper.mapSystemDiscovery(
             fp,
             version,
-            this.enableGbfsV3ToV2Mapping,
-            toOriginalId
+            this.enableGbfsV3ToV2Mapping
           )
         )
         .toList()
@@ -109,20 +89,15 @@ public class SystemDiscoveryServiceImpl implements SystemDiscoveryService {
   public GBFSManifest mapGBFSManifest(
     FeedProviderService feedProviderService,
     String baseUrl,
-    boolean enableGbfsV3ToV2Mapping,
-    boolean originalId
+    boolean enableGbfsV3ToV2Mapping
   ) {
     List<GBFSDataset> datasets = feedProviderService
       .getFeedProviders()
       .stream()
       .map(fp ->
         new GBFSDataset()
-          .withSystemId(
-            originalId
-              ? fp.getSystemId()
-              : idMappingService.getSystemIdOriginalToSuper(fp.getSystemId(), fp)
-          )
-          .withVersions(mapGBFSVersions(fp, baseUrl, enableGbfsV3ToV2Mapping, originalId))
+          .withSystemId(fp.getSystemId())
+          .withVersions(mapGBFSVersions(fp, baseUrl, enableGbfsV3ToV2Mapping))
       )
       .toList();
     List<GBFSDataset> aggregateDataset = Collections.emptyList();
@@ -165,8 +140,7 @@ public class SystemDiscoveryServiceImpl implements SystemDiscoveryService {
   private List<GBFSVersion> mapGBFSVersions(
     FeedProvider fp,
     String baseUrl,
-    boolean enableGbfsV3ToV2Mapping,
-    boolean originalId
+    boolean enableGbfsV3ToV2Mapping
   ) {
     List<GBFSVersion> gbfsVersions = new ArrayList<>();
     if (
@@ -178,16 +152,14 @@ public class SystemDiscoveryServiceImpl implements SystemDiscoveryService {
       gbfsVersions.add(
         new GBFSVersion()
           .withVersion(GBFSVersion.Version._2_3)
-          .withUrl(
-            FeedUrlUtil.mapFeedUrl(baseUrl, GBFSFeedName.GBFS, fp, originalId).toString()
-          )
+          .withUrl(FeedUrlUtil.mapFeedUrl(baseUrl, GBFSFeedName.GBFS, fp).toString())
       );
     }
     if (fp.getVersion() != null && fp.getVersion().startsWith("3")) {
       gbfsVersions.add(
         new GBFSVersion()
           .withVersion(GBFSVersion.Version._3_0)
-          .withUrl(FeedUrlUtil.mapFeedUrl(baseUrl, GBFSFeed.Name.GBFS, fp, originalId))
+          .withUrl(FeedUrlUtil.mapFeedUrl(baseUrl, GBFSFeed.Name.GBFS, fp))
       );
     }
     return gbfsVersions;

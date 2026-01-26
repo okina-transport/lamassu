@@ -12,8 +12,8 @@
             "name": "Nes",
             "rules": [
               {
-                "vehicle_type_id": [
-                  "CityBike"
+                "vehicle_type_ids": [
+                  "TST:VehicleType:CityBike"
                 ],
                 "ride_allowed": true,
                 "ride_through_allowed": false,

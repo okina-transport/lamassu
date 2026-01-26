@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.entur.lamassu.cache.GBFSV3FeedCache;
 import org.entur.lamassu.config.v3.GlobalFeedConfiguration;
-import org.entur.lamassu.mapper.feedmapper.v3.GbfsV3DeliveryMapper;
 import org.entur.lamassu.model.provider.FeedProvider;
 import org.entur.lamassu.service.FeedProviderService;
 import org.mobilitydata.gbfs.v3_0.gbfs.GBFSFeed;
@@ -17,22 +17,16 @@ import org.mobilitydata.gbfs.v3_0.station_information.GBFSStationInformation;
 
 public class AggregateStationInformationService extends AggregateFeedDataService {
 
-  protected AggregateStationInformationService(
+  public AggregateStationInformationService(
     FeedProviderService feedProviderService,
     GBFSV3FeedCache gbfsv3FeedCache,
-    GlobalFeedConfiguration globalFeedConfiguration,
-    GbfsV3DeliveryMapper gbfsV3DeliveryMapper
+    GlobalFeedConfiguration globalFeedConfiguration
   ) {
-    super(
-      feedProviderService,
-      gbfsv3FeedCache,
-      globalFeedConfiguration,
-      gbfsV3DeliveryMapper
-    );
+    super(feedProviderService, gbfsv3FeedCache, globalFeedConfiguration);
   }
 
   @Override
-  public Object buildGlobalFeed(boolean useOriginalId) {
+  public Object buildGlobalFeed() {
     List<FeedProvider> feedProviders = getFeedProviders();
     GBFSStationInformation stationInformations;
     Date globalLastUpdated = null;
@@ -41,14 +35,6 @@ public class AggregateStationInformationService extends AggregateFeedDataService
     for (FeedProvider feedProvider : feedProviders) {
       stationInformations =
         gbfsv3FeedCache.find(GBFSFeed.Name.STATION_INFORMATION, feedProvider);
-      if (useOriginalId) {
-        stationInformations =
-          (GBFSStationInformation) gbfsV3DeliveryMapper.mapSingleGbfsFeed(
-            stationInformations,
-            feedProvider,
-            true
-          );
-      }
       if (stationInformations != null) {
         if (
           globalLastUpdated == null ||
@@ -79,7 +65,17 @@ public class AggregateStationInformationService extends AggregateFeedDataService
     List<GBFSStation> updatedStations = new ArrayList<>(stationByFeed.size());
     for (GBFSStation station : stationByFeed) {
       station.setRegionId(originalSystemId);
-      station.setStationId(aggregateSystemId + ":" + station.getStationId());
+      String[] originalStationIdParts = StringUtils.split(station.getStationId(), ':');
+      String originalStationId = globalFeedConfiguration.getDefaultStationId();
+      if (originalStationIdParts.length > 0) {
+        originalStationId =
+          StringUtils.defaultIfBlank(
+            originalStationIdParts[originalStationIdParts.length - 1],
+            globalFeedConfiguration.getDefaultStationId()
+          );
+      }
+
+      station.setStationId(aggregateSystemId + ":" + originalStationId);
       updatedStations.add(station);
     }
     return updatedStations;

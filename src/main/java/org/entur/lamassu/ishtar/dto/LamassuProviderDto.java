@@ -1,4 +1,4 @@
-package org.entur.lamassu.client.ishtar.dto;
+package org.entur.lamassu.ishtar.dto;
 
 import java.util.List;
 import java.util.Map;

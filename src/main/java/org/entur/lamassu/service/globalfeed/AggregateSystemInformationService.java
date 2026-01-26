@@ -4,7 +4,6 @@ import java.util.Date;
 import java.util.List;
 import org.entur.lamassu.cache.GBFSV3FeedCache;
 import org.entur.lamassu.config.v3.GlobalFeedConfiguration;
-import org.entur.lamassu.mapper.feedmapper.v3.GbfsV3DeliveryMapper;
 import org.entur.lamassu.model.provider.FeedProvider;
 import org.entur.lamassu.service.FeedProviderService;
 import org.mobilitydata.gbfs.v3_0.gbfs.GBFSFeed;
@@ -15,36 +14,22 @@ import org.mobilitydata.gbfs.v3_0.system_information.GBFSSystemInformation;
 
 public class AggregateSystemInformationService extends AggregateFeedDataService {
 
-  protected AggregateSystemInformationService(
+  public AggregateSystemInformationService(
     FeedProviderService feedProviderService,
     GBFSV3FeedCache gbfsv3FeedCache,
-    GlobalFeedConfiguration globalFeedConfiguration,
-    GbfsV3DeliveryMapper gbfsV3DeliveryMapper
+    GlobalFeedConfiguration globalFeedConfiguration
   ) {
-    super(
-      feedProviderService,
-      gbfsv3FeedCache,
-      globalFeedConfiguration,
-      gbfsV3DeliveryMapper
-    );
+    super(feedProviderService, gbfsv3FeedCache, globalFeedConfiguration);
   }
 
   @Override
-  public Object buildGlobalFeed(boolean useOriginalId) {
+  public Object buildGlobalFeed() {
     List<FeedProvider> feedProviders = getFeedProviders();
     Date globalLastUpdated = null;
     GBFSSystemInformation systemInformation;
     for (FeedProvider feedProvider : feedProviders) {
       systemInformation =
         gbfsv3FeedCache.find(GBFSFeed.Name.SYSTEM_INFORMATION, feedProvider);
-      if (useOriginalId) {
-        systemInformation =
-          (GBFSSystemInformation) gbfsV3DeliveryMapper.mapSingleGbfsFeed(
-            systemInformation,
-            feedProvider,
-            true
-          );
-      }
       if (
         systemInformation != null &&
         (

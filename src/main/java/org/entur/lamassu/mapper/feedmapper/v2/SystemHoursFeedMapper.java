@@ -31,11 +31,7 @@ public class SystemHoursFeedMapper extends AbstractFeedMapper<GBFSSystemHours> {
   private String targetGbfsVersion;
 
   @Override
-  public GBFSSystemHours map(
-    GBFSSystemHours source,
-    FeedProvider feedProvider,
-    boolean toOriginalId
-  ) {
+  public GBFSSystemHours map(GBFSSystemHours source, FeedProvider feedProvider) {
     if (source == null) {
       return null;
     }

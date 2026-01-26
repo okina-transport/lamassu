@@ -18,11 +18,13 @@
 
 package org.entur.lamassu.mapper.feedmapper.v3;
 
-import java.util.ArrayList;
+import static org.entur.lamassu.mapper.feedmapper.IdMappers.PRICING_PLAN_ID_TYPE;
+import static org.entur.lamassu.mapper.feedmapper.IdMappers.VEHICLE_TYPE_ID_TYPE;
+
 import java.util.List;
 import java.util.stream.Collectors;
-import org.entur.lamassu.mapper.feedidmapper.v3.V3VehicleTypesFeedIdMapper;
 import org.entur.lamassu.mapper.feedmapper.AbstractFeedMapper;
+import org.entur.lamassu.mapper.feedmapper.IdMappers;
 import org.entur.lamassu.model.provider.FeedProvider;
 import org.mobilitydata.gbfs.v3_0.vehicle_types.GBFSData;
 import org.mobilitydata.gbfs.v3_0.vehicle_types.GBFSVehicleType;
@@ -34,18 +36,8 @@ public class V3VehicleTypesFeedMapper extends AbstractFeedMapper<GBFSVehicleType
 
   private static final String TARGET_GBFS_VERSION = "3.0";
 
-  private final V3VehicleTypesFeedIdMapper idMapper;
-
-  public V3VehicleTypesFeedMapper(V3VehicleTypesFeedIdMapper idMapper) {
-    this.idMapper = idMapper;
-  }
-
   @Override
-  public GBFSVehicleTypes map(
-    GBFSVehicleTypes source,
-    FeedProvider feedProvider,
-    boolean toOriginalId
-  ) {
+  public GBFSVehicleTypes map(GBFSVehicleTypes source, FeedProvider feedProvider) {
     // TODO should we support custom vehicle types?
     //if (feedProvider.getVehicleTypes() != null) {
     //  return customVehicleTypes(feedProvider);
@@ -59,25 +51,31 @@ public class V3VehicleTypesFeedMapper extends AbstractFeedMapper<GBFSVehicleType
     mapped.setVersion(TARGET_GBFS_VERSION);
     mapped.setTtl(source.getTtl());
     mapped.setLastUpdated(source.getLastUpdated());
-    mapped.setData(mapData(source.getData()));
-
-    idMapper.mapIds(mapped, feedProvider, toOriginalId);
+    mapped.setData(mapData(source.getData(), feedProvider.getCodespace()));
     return mapped;
   }
 
-  private GBFSData mapData(GBFSData data) {
+  private GBFSData mapData(GBFSData data, String codespace) {
     var mapped = new GBFSData();
-    mapped.setVehicleTypes(mapVehicleTypes(data.getVehicleTypes()));
+    mapped.setVehicleTypes(mapVehicleTypes(data.getVehicleTypes(), codespace));
     return mapped;
   }
 
-  private List<GBFSVehicleType> mapVehicleTypes(List<GBFSVehicleType> vehicleTypes) {
-    return vehicleTypes.stream().map(this::mapVehicleType).collect(Collectors.toList());
+  private List<GBFSVehicleType> mapVehicleTypes(
+    List<GBFSVehicleType> vehicleTypes,
+    String codespace
+  ) {
+    return vehicleTypes
+      .stream()
+      .map(vehicleType -> mapVehicleType(vehicleType, codespace))
+      .collect(Collectors.toList());
   }
 
-  private GBFSVehicleType mapVehicleType(GBFSVehicleType vehicleType) {
+  private GBFSVehicleType mapVehicleType(GBFSVehicleType vehicleType, String codespace) {
     var mapped = new GBFSVehicleType();
-    mapped.setVehicleTypeId(vehicleType.getVehicleTypeId());
+    mapped.setVehicleTypeId(
+      IdMappers.mapId(codespace, VEHICLE_TYPE_ID_TYPE, vehicleType.getVehicleTypeId())
+    );
     mapped.setFormFactor(vehicleType.getFormFactor());
     mapped.setRiderCapacity(vehicleType.getRiderCapacity());
     mapped.setCargoVolumeCapacity(vehicleType.getCargoVolumeCapacity());
@@ -99,10 +97,18 @@ public class V3VehicleTypesFeedMapper extends AbstractFeedMapper<GBFSVehicleType
     mapped.setDefaultReserveTime(vehicleType.getDefaultReserveTime());
     mapped.setReturnConstraint(vehicleType.getReturnConstraint());
     mapped.setVehicleAssets(vehicleType.getVehicleAssets());
-    mapped.setDefaultPricingPlanId(vehicleType.getDefaultPricingPlanId());
+    mapped.setDefaultPricingPlanId(
+      IdMappers.mapId(
+        codespace,
+        PRICING_PLAN_ID_TYPE,
+        vehicleType.getDefaultPricingPlanId()
+      )
+    );
     mapped.setPricingPlanIds(
       vehicleType.getPricingPlanIds() != null
-        ? new ArrayList<>(vehicleType.getPricingPlanIds())
+        ? IdMappers
+          .mapIds(codespace, PRICING_PLAN_ID_TYPE, vehicleType.getPricingPlanIds())
+          .orElse(null)
         : null
     );
     return mapped;

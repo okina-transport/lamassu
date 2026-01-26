@@ -18,15 +18,18 @@
 
 package org.entur.lamassu.mapper.feedmapper.v2;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import org.apache.commons.collections4.CollectionUtils;
-import org.entur.lamassu.mapper.feedidmapper.v2.StationStatusFeedIdMapper;
+import org.apache.commons.collections.CollectionUtils;
 import org.entur.lamassu.mapper.feedmapper.AbstractFeedMapper;
+import org.entur.lamassu.mapper.feedmapper.IdMappers;
 import org.entur.lamassu.model.provider.FeedProvider;
-import org.mobilitydata.gbfs.v2_3.station_status.*;
+import org.mobilitydata.gbfs.v2_3.station_status.GBFSData;
+import org.mobilitydata.gbfs.v2_3.station_status.GBFSStation;
+import org.mobilitydata.gbfs.v2_3.station_status.GBFSStationStatus;
+import org.mobilitydata.gbfs.v2_3.station_status.GBFSVehicleDocksAvailable;
+import org.mobilitydata.gbfs.v2_3.station_status.GBFSVehicleTypesAvailable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -36,18 +39,8 @@ public class StationStatusFeedMapper extends AbstractFeedMapper<GBFSStationStatu
   @Value("${org.entur.lamassu.targetGbfsVersion:2.2}")
   private String targetGbfsVersion;
 
-  private final StationStatusFeedIdMapper idMapper;
-
-  public StationStatusFeedMapper(StationStatusFeedIdMapper idMapper) {
-    this.idMapper = idMapper;
-  }
-
   @Override
-  public GBFSStationStatus map(
-    GBFSStationStatus source,
-    FeedProvider feedProvider,
-    boolean toOriginalId
-  ) {
+  public GBFSStationStatus map(GBFSStationStatus source, FeedProvider feedProvider) {
     if (source == null) {
       return null;
     }
@@ -56,26 +49,35 @@ public class StationStatusFeedMapper extends AbstractFeedMapper<GBFSStationStatu
     mapped.setVersion(targetGbfsVersion);
     mapped.setLastUpdated(source.getLastUpdated());
     mapped.setTtl(source.getTtl());
-    mapped.setData(mapData(source.getData()));
-
-    idMapper.mapIds(mapped, feedProvider, toOriginalId);
+    mapped.setData(mapData(source.getData(), feedProvider));
     return mapped;
   }
 
-  private GBFSData mapData(GBFSData data) {
+  private GBFSData mapData(GBFSData data, FeedProvider feedProvider) {
     var mapped = new GBFSData();
     mapped.setStations(
-      data.getStations().stream().map(this::mapStation).collect(Collectors.toList())
+      data
+        .getStations()
+        .stream()
+        .map(station -> mapStation(station, feedProvider))
+        .collect(Collectors.toList())
     );
     return mapped;
   }
 
-  private GBFSStation mapStation(GBFSStation station) {
+  private GBFSStation mapStation(GBFSStation station, FeedProvider feedProvider) {
     var mapped = new GBFSStation();
-    mapped.setStationId(station.getStationId());
+    mapped.setStationId(
+      IdMappers.mapId(
+        feedProvider.getCodespace(),
+        IdMappers.STATION_ID_TYPE,
+        station.getStationId()
+      )
+    );
     mapped.setNumBikesAvailable(station.getNumBikesAvailable());
     mapped.setVehicleTypesAvailable(
-      mapVehicleTypesAvailable(station.getVehicleTypesAvailable()).orElse(null)
+      mapVehicleTypesAvailable(station.getVehicleTypesAvailable(), feedProvider)
+        .orElse(null)
     );
     mapped.setNumBikesDisabled(station.getNumBikesDisabled());
     if (station.getNumDocksAvailable() == null || station.getNumDocksAvailable() < 1) {
@@ -87,7 +89,8 @@ public class StationStatusFeedMapper extends AbstractFeedMapper<GBFSStationStatu
       mapped.setVehicleDocksAvailable(null);
     } else {
       mapped.setVehicleDocksAvailable(
-        mapVehicleDocksAvailable(station.getVehicleDocksAvailable()).orElse(null)
+        mapVehicleDocksAvailable(station.getVehicleDocksAvailable(), feedProvider)
+          .orElse(null)
       );
     }
     mapped.setNumDocksDisabled(station.getNumDocksDisabled());
@@ -99,7 +102,8 @@ public class StationStatusFeedMapper extends AbstractFeedMapper<GBFSStationStatu
   }
 
   private Optional<List<GBFSVehicleTypesAvailable>> mapVehicleTypesAvailable(
-    List<GBFSVehicleTypesAvailable> vehicleTypesAvailable
+    List<GBFSVehicleTypesAvailable> vehicleTypesAvailable,
+    FeedProvider feedProvider
   ) {
     return Optional
       .ofNullable(vehicleTypesAvailable)
@@ -108,7 +112,13 @@ public class StationStatusFeedMapper extends AbstractFeedMapper<GBFSStationStatu
           .stream()
           .map(vta -> {
             var mapped = new GBFSVehicleTypesAvailable();
-            mapped.setVehicleTypeId(vta.getVehicleTypeId());
+            mapped.setVehicleTypeId(
+              IdMappers.mapId(
+                feedProvider.getCodespace(),
+                IdMappers.VEHICLE_TYPE_ID_TYPE,
+                vta.getVehicleTypeId()
+              )
+            );
             mapped.setCount(vta.getCount());
             return mapped;
           })
@@ -117,7 +127,8 @@ public class StationStatusFeedMapper extends AbstractFeedMapper<GBFSStationStatu
   }
 
   private Optional<List<GBFSVehicleDocksAvailable>> mapVehicleDocksAvailable(
-    List<GBFSVehicleDocksAvailable> vehicleDocksAvailable
+    List<GBFSVehicleDocksAvailable> vehicleDocksAvailable,
+    FeedProvider feedProvider
   ) {
     return Optional
       .ofNullable(vehicleDocksAvailable)
@@ -126,7 +137,19 @@ public class StationStatusFeedMapper extends AbstractFeedMapper<GBFSStationStatu
           .stream()
           .map(vda -> {
             var mapped = new GBFSVehicleDocksAvailable();
-            mapped.setVehicleTypeIds(new ArrayList<>(vda.getVehicleTypeIds()));
+            mapped.setVehicleTypeIds(
+              vda
+                .getVehicleTypeIds()
+                .stream()
+                .map(id ->
+                  IdMappers.mapId(
+                    feedProvider.getCodespace(),
+                    IdMappers.VEHICLE_TYPE_ID_TYPE,
+                    id
+                  )
+                )
+                .collect(Collectors.toList())
+            );
             if (vda.getCount() == null || vda.getCount() < 1) {
               mapped.setCount(0);
             } else {

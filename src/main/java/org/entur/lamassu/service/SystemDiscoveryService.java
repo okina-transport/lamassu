@@ -5,6 +5,6 @@ import org.mobilitydata.gbfs.v3_0.manifest.GBFSManifest;
 import org.mobilitydata.gbfs.v3_0.manifest.GBFSVersion;
 
 public interface SystemDiscoveryService {
-  SystemDiscovery getSystemDiscovery(GBFSVersion.Version version, boolean originalId);
-  GBFSManifest getGBFSManifest(boolean originalId);
+  SystemDiscovery getSystemDiscovery(GBFSVersion.Version version);
+  GBFSManifest getGBFSManifest();
 }

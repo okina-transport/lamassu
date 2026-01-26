@@ -18,14 +18,17 @@
 
 package org.entur.lamassu.mapper.feedmapper.v3;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import org.entur.lamassu.mapper.feedidmapper.v3.V3StationStatusFeedIdMapper;
 import org.entur.lamassu.mapper.feedmapper.AbstractFeedMapper;
+import org.entur.lamassu.mapper.feedmapper.IdMappers;
 import org.entur.lamassu.model.provider.FeedProvider;
-import org.mobilitydata.gbfs.v3_0.station_status.*;
+import org.mobilitydata.gbfs.v3_0.station_status.GBFSData;
+import org.mobilitydata.gbfs.v3_0.station_status.GBFSStation;
+import org.mobilitydata.gbfs.v3_0.station_status.GBFSStationStatus;
+import org.mobilitydata.gbfs.v3_0.station_status.GBFSVehicleDocksAvailable;
+import org.mobilitydata.gbfs.v3_0.station_status.GBFSVehicleTypesAvailable;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -33,18 +36,8 @@ public class V3StationStatusFeedMapper extends AbstractFeedMapper<GBFSStationSta
 
   private static final String TARGET_GBFS_VERSION = "3.0";
 
-  private final V3StationStatusFeedIdMapper idMapper;
-
-  public V3StationStatusFeedMapper(V3StationStatusFeedIdMapper idMapper) {
-    this.idMapper = idMapper;
-  }
-
   @Override
-  public GBFSStationStatus map(
-    GBFSStationStatus source,
-    FeedProvider feedProvider,
-    boolean toOriginalId
-  ) {
+  public GBFSStationStatus map(GBFSStationStatus source, FeedProvider feedProvider) {
     if (source == null) {
       return null;
     }
@@ -53,31 +46,41 @@ public class V3StationStatusFeedMapper extends AbstractFeedMapper<GBFSStationSta
     mapped.setVersion(TARGET_GBFS_VERSION);
     mapped.setLastUpdated(source.getLastUpdated());
     mapped.setTtl(source.getTtl());
-    mapped.setData(mapData(source.getData()));
-
-    idMapper.mapIds(mapped, feedProvider, toOriginalId);
+    mapped.setData(mapData(source.getData(), feedProvider));
     return mapped;
   }
 
-  private GBFSData mapData(GBFSData data) {
+  private GBFSData mapData(GBFSData data, FeedProvider feedProvider) {
     var mapped = new GBFSData();
     mapped.setStations(
-      data.getStations().stream().map(this::mapStation).collect(Collectors.toList())
+      data
+        .getStations()
+        .stream()
+        .map(station -> mapStation(station, feedProvider))
+        .collect(Collectors.toList())
     );
     return mapped;
   }
 
-  private GBFSStation mapStation(GBFSStation station) {
+  private GBFSStation mapStation(GBFSStation station, FeedProvider feedProvider) {
     var mapped = new GBFSStation();
-    mapped.setStationId(station.getStationId());
+    mapped.setStationId(
+      IdMappers.mapId(
+        feedProvider.getCodespace(),
+        IdMappers.STATION_ID_TYPE,
+        station.getStationId()
+      )
+    );
     mapped.setNumVehiclesAvailable(station.getNumVehiclesAvailable());
     mapped.setVehicleTypesAvailable(
-      mapVehicleTypesAvailable(station.getVehicleTypesAvailable()).orElse(null)
+      mapVehicleTypesAvailable(station.getVehicleTypesAvailable(), feedProvider)
+        .orElse(null)
     );
     mapped.setNumVehiclesDisabled(station.getNumVehiclesDisabled());
     mapped.setNumDocksAvailable(station.getNumDocksAvailable());
     mapped.setVehicleDocksAvailable(
-      mapVehicleDocksAvailable(station.getVehicleDocksAvailable()).orElse(null)
+      mapVehicleDocksAvailable(station.getVehicleDocksAvailable(), feedProvider)
+        .orElse(null)
     );
     mapped.setNumDocksDisabled(station.getNumDocksDisabled());
     mapped.setIsInstalled(station.getIsInstalled());
@@ -88,7 +91,8 @@ public class V3StationStatusFeedMapper extends AbstractFeedMapper<GBFSStationSta
   }
 
   private Optional<List<GBFSVehicleTypesAvailable>> mapVehicleTypesAvailable(
-    List<GBFSVehicleTypesAvailable> vehicleTypesAvailable
+    List<GBFSVehicleTypesAvailable> vehicleTypesAvailable,
+    FeedProvider feedProvider
   ) {
     return Optional
       .ofNullable(vehicleTypesAvailable)
@@ -97,7 +101,13 @@ public class V3StationStatusFeedMapper extends AbstractFeedMapper<GBFSStationSta
           .stream()
           .map(vta -> {
             var mapped = new GBFSVehicleTypesAvailable();
-            mapped.setVehicleTypeId(vta.getVehicleTypeId());
+            mapped.setVehicleTypeId(
+              IdMappers.mapId(
+                feedProvider.getCodespace(),
+                IdMappers.VEHICLE_TYPE_ID_TYPE,
+                vta.getVehicleTypeId()
+              )
+            );
             mapped.setCount(vta.getCount());
             return mapped;
           })
@@ -106,7 +116,8 @@ public class V3StationStatusFeedMapper extends AbstractFeedMapper<GBFSStationSta
   }
 
   private Optional<List<GBFSVehicleDocksAvailable>> mapVehicleDocksAvailable(
-    List<GBFSVehicleDocksAvailable> vehicleDocksAvailable
+    List<GBFSVehicleDocksAvailable> vehicleDocksAvailable,
+    FeedProvider feedProvider
   ) {
     return Optional
       .ofNullable(vehicleDocksAvailable)
@@ -115,7 +126,19 @@ public class V3StationStatusFeedMapper extends AbstractFeedMapper<GBFSStationSta
           .stream()
           .map(vda -> {
             var mapped = new GBFSVehicleDocksAvailable();
-            mapped.setVehicleTypeIds(new ArrayList<>(vda.getVehicleTypeIds()));
+            mapped.setVehicleTypeIds(
+              vda
+                .getVehicleTypeIds()
+                .stream()
+                .map(id ->
+                  IdMappers.mapId(
+                    feedProvider.getCodespace(),
+                    IdMappers.VEHICLE_TYPE_ID_TYPE,
+                    id
+                  )
+                )
+                .collect(Collectors.toList())
+            );
             mapped.setCount(vda.getCount());
             return mapped;
           })

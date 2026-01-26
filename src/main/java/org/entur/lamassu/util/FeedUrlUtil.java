@@ -18,7 +18,6 @@
 
 package org.entur.lamassu.util;
 
-import jakarta.ws.rs.core.UriBuilder;
 import java.net.URI;
 import org.entur.lamassu.model.provider.FeedProvider;
 
@@ -29,40 +28,26 @@ public class FeedUrlUtil {
   public static URI mapFeedUrl(
     String baseUrl,
     org.mobilitydata.gbfs.v2_3.gbfs.GBFSFeedName feedName,
-    FeedProvider feedProvider,
-    boolean originalId
+    FeedProvider feedProvider
   ) {
-    UriBuilder feedUrlBuilder = UriBuilder
-      .fromUri(baseUrl)
-      .path("gbfs")
-      .path("v2")
-      .path(feedProvider.getSystemId())
-      .path(feedName.value());
-
-    if (originalId) {
-      feedUrlBuilder.queryParam("useOriginalId", "true");
-    }
-
-    return feedUrlBuilder.build();
+    var systemId = feedProvider.getSystemId();
+    var feedUrl = addToPath(baseUrl, "gbfs/v2");
+    feedUrl = addToPath(feedUrl, systemId);
+    return URI.create(addToPath(feedUrl, feedName.value()));
   }
 
   public static String mapFeedUrl(
     String baseUrl,
     org.mobilitydata.gbfs.v3_0.gbfs.GBFSFeed.Name feedName,
-    FeedProvider feedProvider,
-    boolean originalId
+    FeedProvider feedProvider
   ) {
-    UriBuilder feedUrlBuilder = UriBuilder
-      .fromUri(baseUrl)
-      .path("gbfs")
-      .path("v3")
-      .path(feedProvider.getSystemId())
-      .path(feedName.value());
+    var systemId = feedProvider.getSystemId();
+    var feedUrl = addToPath(baseUrl, "gbfs/v3");
+    feedUrl = addToPath(feedUrl, systemId);
+    return addToPath(feedUrl, feedName.value());
+  }
 
-    if (originalId) {
-      feedUrlBuilder.queryParam("useOriginalId", "true");
-    }
-
-    return feedUrlBuilder.build().toString();
+  private static String addToPath(String base, String toAdd) {
+    return String.format("%s/%s", base, toAdd);
   }
 }
