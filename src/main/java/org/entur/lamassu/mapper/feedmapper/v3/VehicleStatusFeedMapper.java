@@ -18,13 +18,9 @@
 
 package org.entur.lamassu.mapper.feedmapper.v3;
 
-import static org.entur.lamassu.mapper.feedmapper.IdMappers.mapPricingPlanId;
-import static org.entur.lamassu.mapper.feedmapper.IdMappers.mapStationId;
-import static org.entur.lamassu.mapper.feedmapper.IdMappers.mapVehicleTypeId;
-
 import java.util.stream.Collectors;
+import org.entur.lamassu.mapper.feedidmapper.v3.VehicleStatusFeedIdMapper;
 import org.entur.lamassu.mapper.feedmapper.AbstractFeedMapper;
-import org.entur.lamassu.mapper.feedmapper.IdMappers;
 import org.entur.lamassu.model.provider.FeedProvider;
 import org.mobilitydata.gbfs.v3_0.vehicle_status.GBFSData;
 import org.mobilitydata.gbfs.v3_0.vehicle_status.GBFSVehicle;
@@ -36,8 +32,18 @@ public class VehicleStatusFeedMapper extends AbstractFeedMapper<GBFSVehicleStatu
 
   private static final String TARGET_GBFS_VERSION = "3.0";
 
+  private final VehicleStatusFeedIdMapper idMapper;
+
+  public VehicleStatusFeedMapper(VehicleStatusFeedIdMapper idMapper) {
+    this.idMapper = idMapper;
+  }
+
   @Override
-  public GBFSVehicleStatus map(GBFSVehicleStatus source, FeedProvider feedProvider) {
+  public GBFSVehicleStatus map(
+    GBFSVehicleStatus source,
+    FeedProvider feedProvider,
+    boolean toOriginalId
+  ) {
     if (source == null) {
       return null;
     }
@@ -46,43 +52,35 @@ public class VehicleStatusFeedMapper extends AbstractFeedMapper<GBFSVehicleStatu
     mapped.setVersion(TARGET_GBFS_VERSION);
     mapped.setLastUpdated(source.getLastUpdated());
     mapped.setTtl(source.getTtl());
-    mapped.setData(mapData(source.getData(), feedProvider));
+    mapped.setData(mapData(source.getData()));
+
+    idMapper.mapIds(mapped, feedProvider, toOriginalId);
     return mapped;
   }
 
-  private GBFSData mapData(GBFSData data, FeedProvider feedProvider) {
+  private GBFSData mapData(GBFSData data) {
     var mapped = new GBFSData();
     mapped.setVehicles(
-      data
-        .getVehicles()
-        .stream()
-        .map(vehicle -> mapVehicle(vehicle, feedProvider))
-        .collect(Collectors.toList())
+      data.getVehicles().stream().map(this::mapVehicle).collect(Collectors.toList())
     );
     return mapped;
   }
 
-  protected GBFSVehicle mapVehicle(GBFSVehicle vehicle, FeedProvider feedProvider) {
+  protected GBFSVehicle mapVehicle(GBFSVehicle vehicle) {
     var mapped = new GBFSVehicle();
-    mapped.setVehicleId(
-      IdMappers.mapId(
-        feedProvider.getCodespace(),
-        IdMappers.VEHICLE_ID_TYPE,
-        vehicle.getVehicleId()
-      )
-    );
+    mapped.setVehicleId(vehicle.getVehicleId());
     mapped.setLat(vehicle.getLat());
     mapped.setLon(vehicle.getLon());
     mapped.setIsReserved(vehicle.getIsReserved());
     mapped.setIsDisabled(vehicle.getIsDisabled());
     mapped.setRentalUris(vehicle.getRentalUris());
-    mapped.setVehicleTypeId(mapVehicleTypeId(vehicle.getVehicleTypeId(), feedProvider));
+    mapped.setVehicleTypeId(vehicle.getVehicleTypeId());
     mapped.setLastReported(vehicle.getLastReported());
     mapped.setCurrentRangeMeters(vehicle.getCurrentRangeMeters());
     mapped.setCurrentFuelPercent(vehicle.getCurrentFuelPercent());
-    mapped.setStationId(mapStationId(vehicle.getStationId(), feedProvider));
-    mapped.setHomeStationId(mapStationId(vehicle.getHomeStationId(), feedProvider));
-    mapped.setPricingPlanId(mapPricingPlanId(vehicle.getPricingPlanId(), feedProvider));
+    mapped.setStationId(vehicle.getStationId());
+    mapped.setHomeStationId(vehicle.getHomeStationId());
+    mapped.setPricingPlanId(vehicle.getPricingPlanId());
     mapped.setVehicleEquipment(vehicle.getVehicleEquipment());
     mapped.setAvailableUntil(vehicle.getAvailableUntil());
     return mapped;

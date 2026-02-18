@@ -36,15 +36,18 @@ import org.springframework.stereotype.Component;
 @Component
 public class DiscoveryFeedMapper extends AbstractFeedMapper<GBFS> {
 
-  @Value("${org.entur.lamassu.baseUrl}")
-  private String baseUrl;
+  private final String baseUrl;
 
   private static final String TARGET_GBFS_VERSION = "2.3";
 
   private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
+  public DiscoveryFeedMapper(@Value("${org.entur.lamassu.baseUrl}") String baseUrl) {
+    this.baseUrl = baseUrl;
+  }
+
   @Override
-  public GBFS map(GBFS source, FeedProvider feedProvider) {
+  public GBFS map(GBFS source, FeedProvider feedProvider, boolean toOriginalId) {
     if (source.getFeedsData() == null) {
       logger.warn("Missing discovery data for provider={} feed={}", feedProvider, source);
       return null;
@@ -90,7 +93,9 @@ public class DiscoveryFeedMapper extends AbstractFeedMapper<GBFS> {
       .map(feed -> {
         var mappedFeed = new GBFSFeed();
         mappedFeed.setName(feed.getName());
-        mappedFeed.setUrl(FeedUrlUtil.mapFeedUrl(baseUrl, feed.getName(), feedProvider));
+        mappedFeed.setUrl(
+          FeedUrlUtil.mapFeedUrl(baseUrl, feed.getName(), feedProvider, toOriginalId)
+        );
         return mappedFeed;
       })
       // Lamassu currently only support producing a single version of GBFS, therefore
@@ -105,7 +110,12 @@ public class DiscoveryFeedMapper extends AbstractFeedMapper<GBFS> {
       var vehicleTypesFeed = new GBFSFeed();
       vehicleTypesFeed.setName(GBFSFeedName.VehicleTypes);
       vehicleTypesFeed.setUrl(
-        FeedUrlUtil.mapFeedUrl(baseUrl, GBFSFeedName.VehicleTypes, feedProvider)
+        FeedUrlUtil.mapFeedUrl(
+          baseUrl,
+          GBFSFeedName.VehicleTypes,
+          feedProvider,
+          toOriginalId
+        )
       );
       feeds.add(vehicleTypesFeed);
     }
@@ -117,11 +127,15 @@ public class DiscoveryFeedMapper extends AbstractFeedMapper<GBFS> {
       var pricingPlansFeed = new GBFSFeed();
       pricingPlansFeed.setName(GBFSFeedName.SystemPricingPlans);
       pricingPlansFeed.setUrl(
-        FeedUrlUtil.mapFeedUrl(baseUrl, GBFSFeedName.SystemPricingPlans, feedProvider)
+        FeedUrlUtil.mapFeedUrl(
+          baseUrl,
+          GBFSFeedName.SystemPricingPlans,
+          feedProvider,
+          toOriginalId
+        )
       );
       feeds.add(pricingPlansFeed);
     }
-
     mappedData.setFeeds(feeds);
     dataWrapper.put(sourceLanguageCode, mappedData);
     mapped.setFeedsData(dataWrapper);

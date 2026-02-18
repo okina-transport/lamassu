@@ -2,6 +2,7 @@ package org.entur.lamassu.service;
 
 import org.entur.lamassu.cache.GBFSV3FeedCache;
 import org.entur.lamassu.config.v3.GlobalFeedConfiguration;
+import org.entur.lamassu.mapper.feedmapper.v3.GbfsV3DeliveryMapper;
 import org.entur.lamassu.model.provider.GbfsModality;
 import org.entur.lamassu.service.globalfeed.AggregateFeedDataService;
 import org.entur.lamassu.service.globalfeed.AggregateFeedDataServiceBuilder;
@@ -17,23 +18,37 @@ public class GlobalFeedProviderService {
 
   private final GlobalFeedConfiguration globalFeedConfiguration;
 
+  private final GbfsV3DeliveryMapper gbfsV3DeliveryMapper;
+
   public GlobalFeedProviderService(
     FeedProviderService feedProviderService,
     GBFSV3FeedCache gbfsv3FeedCache,
-    GlobalFeedConfiguration globalFeedConfiguration
+    GlobalFeedConfiguration globalFeedConfiguration,
+    GbfsV3DeliveryMapper gbfsV3DeliveryMapper
   ) {
     this.feedProviderService = feedProviderService;
     this.gbfsv3FeedCache = gbfsv3FeedCache;
     this.globalFeedConfiguration = globalFeedConfiguration;
+    this.gbfsV3DeliveryMapper = gbfsV3DeliveryMapper;
   }
 
-  public Object getGlobalFeed(GbfsModality gbfsModality, String feedName) {
+  public Object getGlobalFeed(
+    GbfsModality gbfsModality,
+    String feedName,
+    boolean useOriginalId
+  ) {
     GBFSFeed.Name gbfsFeed = GBFSFeed.Name.fromValue(feedName);
     AggregateFeedDataService aggregateFeedServiceInstance =
       AggregateFeedDataServiceBuilder
-        .init(gbfsFeed, feedProviderService, gbfsv3FeedCache, globalFeedConfiguration)
+        .init(
+          gbfsFeed,
+          feedProviderService,
+          gbfsv3FeedCache,
+          globalFeedConfiguration,
+          gbfsV3DeliveryMapper
+        )
         .withModality(gbfsModality)
         .build();
-    return aggregateFeedServiceInstance.buildGlobalFeed();
+    return aggregateFeedServiceInstance.buildGlobalFeed(useOriginalId);
   }
 }

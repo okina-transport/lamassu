@@ -11,7 +11,7 @@
         "lat": 12.34,
         "lon": 45.67,
         "vehicle_type_capacity": {
-          "TST:VehicleType:CityBike": 7
+          "CityBike": 7
         },
         "station_area": {
           "type": "MultiPolygon",
@@ -44,12 +44,12 @@
         }
       },
       {
-        "station_id": "TST:Station:2",
+        "station_id": "2",
         "name": "Cooler bikes",
         "lat": 11.34,
         "lon": 44.67,
         "vehicle_capacity": {
-          "TST:VehicleType:CityBike": 12
+          "CityBike": 12
         },
         "rental_uris": {
           "web": "https://rentmybikes.com"

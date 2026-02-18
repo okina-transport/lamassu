@@ -1,9 +1,12 @@
 package org.entur.lamassu.service.globalfeed;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import org.apache.commons.collections4.CollectionUtils;
 import org.entur.lamassu.cache.GBFSV3FeedCache;
 import org.entur.lamassu.config.v3.GlobalFeedConfiguration;
+import org.entur.lamassu.mapper.feedmapper.v3.GbfsV3DeliveryMapper;
 import org.entur.lamassu.model.provider.FeedProvider;
 import org.entur.lamassu.service.FeedProviderService;
 import org.mobilitydata.gbfs.v3_0.gbfs.GBFSFeed;
@@ -12,16 +15,22 @@ import org.mobilitydata.gbfs.v3_0.geofencing_zones.*;
 
 public class AggregateGeofencingZonesService extends AggregateFeedDataService {
 
-  public AggregateGeofencingZonesService(
+  protected AggregateGeofencingZonesService(
     FeedProviderService feedProviderService,
     GBFSV3FeedCache gbfsv3FeedCache,
-    GlobalFeedConfiguration globalFeedConfiguration
+    GlobalFeedConfiguration globalFeedConfiguration,
+    GbfsV3DeliveryMapper gbfsV3DeliveryMapper
   ) {
-    super(feedProviderService, gbfsv3FeedCache, globalFeedConfiguration);
+    super(
+      feedProviderService,
+      gbfsv3FeedCache,
+      globalFeedConfiguration,
+      gbfsV3DeliveryMapper
+    );
   }
 
   @Override
-  public Object buildGlobalFeed() {
+  public Object buildGlobalFeed(boolean useOriginalId) {
     List<FeedProvider> feedProviders = getFeedProviders();
     GBFSGeofencingZones geofencingZones;
     Date globalLastUpdated = null;
@@ -30,6 +39,14 @@ public class AggregateGeofencingZonesService extends AggregateFeedDataService {
     for (FeedProvider feedProvider : feedProviders) {
       geofencingZones =
         gbfsv3FeedCache.find(GBFSFeed.Name.GEOFENCING_ZONES, feedProvider);
+      if (useOriginalId) {
+        geofencingZones =
+          (GBFSGeofencingZones) gbfsV3DeliveryMapper.mapSingleGbfsFeed(
+            geofencingZones,
+            feedProvider,
+            true
+          );
+      }
       if (geofencingZones != null) {
         if (
           globalLastUpdated == null ||

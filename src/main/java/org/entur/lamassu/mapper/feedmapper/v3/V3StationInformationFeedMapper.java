@@ -18,18 +18,13 @@
 
 package org.entur.lamassu.mapper.feedmapper.v3;
 
-import static org.entur.lamassu.mapper.feedmapper.IdMappers.mapRegionId;
-
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.entur.lamassu.mapper.feedidmapper.v3.V3StationInformationFeedIdMapper;
 import org.entur.lamassu.mapper.feedmapper.AbstractFeedMapper;
-import org.entur.lamassu.mapper.feedmapper.IdMappers;
 import org.entur.lamassu.model.provider.FeedProvider;
-import org.mobilitydata.gbfs.v3_0.station_information.GBFSData;
-import org.mobilitydata.gbfs.v3_0.station_information.GBFSStation;
-import org.mobilitydata.gbfs.v3_0.station_information.GBFSStationInformation;
-import org.mobilitydata.gbfs.v3_0.station_information.GBFSVehicleDocksCapacity;
-import org.mobilitydata.gbfs.v3_0.station_information.GBFSVehicleTypesCapacity;
+import org.mobilitydata.gbfs.v3_0.station_information.*;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -38,10 +33,17 @@ public class V3StationInformationFeedMapper
 
   private static final String TARGET_GBFS_VERSION = "3.0";
 
+  private final V3StationInformationFeedIdMapper idMapper;
+
+  public V3StationInformationFeedMapper(V3StationInformationFeedIdMapper idMapper) {
+    this.idMapper = idMapper;
+  }
+
   @Override
   public GBFSStationInformation map(
     GBFSStationInformation source,
-    FeedProvider feedProvider
+    FeedProvider feedProvider,
+    boolean toOriginalId
   ) {
     if (source == null) {
       return null;
@@ -51,35 +53,32 @@ public class V3StationInformationFeedMapper
     mapped.setVersion(TARGET_GBFS_VERSION);
     mapped.setLastUpdated(source.getLastUpdated());
     mapped.setTtl(source.getTtl());
-    mapped.setData(mapData(source.getData(), feedProvider.getCodespace()));
+    mapped.setData(mapData(source.getData()));
+
+    idMapper.mapIds(mapped, feedProvider, toOriginalId);
     return mapped;
   }
 
-  private GBFSData mapData(GBFSData data, String codespace) {
+  private GBFSData mapData(GBFSData data) {
     var mapped = new GBFSData();
-    mapped.setStations(mapStations(data.getStations(), codespace));
+    mapped.setStations(mapStations(data.getStations()));
     return mapped;
   }
 
-  private List<GBFSStation> mapStations(List<GBFSStation> stations, String codespace) {
-    return stations
-      .stream()
-      .map(station -> mapStation(station, codespace))
-      .collect(Collectors.toList());
+  private List<GBFSStation> mapStations(List<GBFSStation> stations) {
+    return stations.stream().map(this::mapStation).collect(Collectors.toList());
   }
 
-  private GBFSStation mapStation(GBFSStation gbfsStation, String codespace) {
+  private GBFSStation mapStation(GBFSStation gbfsStation) {
     var mapped = new GBFSStation();
-    mapped.setStationId(
-      IdMappers.mapId(codespace, IdMappers.STATION_ID_TYPE, gbfsStation.getStationId())
-    );
+    mapped.setStationId(gbfsStation.getStationId());
     mapped.setName(gbfsStation.getName());
     mapped.setShortName(gbfsStation.getShortName());
     mapped.setLat(gbfsStation.getLat());
     mapped.setLon(gbfsStation.getLon());
     mapped.setAddress(gbfsStation.getAddress());
     mapped.setCrossStreet(gbfsStation.getCrossStreet());
-    mapped.setRegionId(mapRegionId(codespace, gbfsStation.getRegionId()));
+    mapped.setRegionId(gbfsStation.getRegionId());
     mapped.setPostCode(gbfsStation.getPostCode());
     mapped.setStationOpeningHours(gbfsStation.getStationOpeningHours());
     mapped.setRentalMethods(gbfsStation.getRentalMethods());
@@ -90,11 +89,11 @@ public class V3StationInformationFeedMapper
     mapped.setContactPhone(gbfsStation.getContactPhone());
     mapped.setCapacity(gbfsStation.getCapacity());
     mapped.setVehicleTypesCapacity(
-      mapVehicleTypesCapacityList(gbfsStation.getVehicleTypesCapacity(), codespace)
+      mapVehicleTypesCapacityList(gbfsStation.getVehicleTypesCapacity())
     );
 
     mapped.setVehicleDocksCapacity(
-      mapVehicleDocksCapacityList(gbfsStation.getVehicleDocksCapacity(), codespace)
+      mapVehicleDocksCapacityList(gbfsStation.getVehicleDocksCapacity())
     );
     mapped.setIsValetStation(gbfsStation.getIsValetStation());
     mapped.setIsChargingStation(gbfsStation.getIsChargingStation());
@@ -103,8 +102,7 @@ public class V3StationInformationFeedMapper
   }
 
   private List<GBFSVehicleTypesCapacity> mapVehicleTypesCapacityList(
-    List<GBFSVehicleTypesCapacity> vehicleTypesCapacityList,
-    String codespace
+    List<GBFSVehicleTypesCapacity> vehicleTypesCapacityList
   ) {
     if (vehicleTypesCapacityList == null) {
       return null;
@@ -114,21 +112,14 @@ public class V3StationInformationFeedMapper
       .stream()
       .map(vehicleTypesCapacity ->
         new GBFSVehicleTypesCapacity()
-          .withVehicleTypeIds(
-            vehicleTypesCapacity
-              .getVehicleTypeIds()
-              .stream()
-              .map(id -> IdMappers.mapId(codespace, IdMappers.VEHICLE_TYPE_ID_TYPE, id))
-              .collect(Collectors.toList())
-          )
+          .withVehicleTypeIds(new ArrayList<>(vehicleTypesCapacity.getVehicleTypeIds()))
           .withCount(vehicleTypesCapacity.getCount())
       )
       .collect(Collectors.toList());
   }
 
   private List<GBFSVehicleDocksCapacity> mapVehicleDocksCapacityList(
-    List<GBFSVehicleDocksCapacity> vehicleDocksCapacityList,
-    String codespace
+    List<GBFSVehicleDocksCapacity> vehicleDocksCapacityList
   ) {
     if (vehicleDocksCapacityList == null) {
       return null;
@@ -138,13 +129,7 @@ public class V3StationInformationFeedMapper
       .stream()
       .map(vehicleDocksCapacity ->
         new GBFSVehicleDocksCapacity()
-          .withVehicleTypeIds(
-            vehicleDocksCapacity
-              .getVehicleTypeIds()
-              .stream()
-              .map(id -> IdMappers.mapId(codespace, IdMappers.VEHICLE_TYPE_ID_TYPE, id))
-              .collect(Collectors.toList())
-          )
+          .withVehicleTypeIds(new ArrayList<>(vehicleDocksCapacity.getVehicleTypeIds()))
           .withCount(vehicleDocksCapacity.getCount())
       )
       .collect(Collectors.toList());

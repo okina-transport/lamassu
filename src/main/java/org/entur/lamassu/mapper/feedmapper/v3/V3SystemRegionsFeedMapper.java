@@ -20,8 +20,8 @@ package org.entur.lamassu.mapper.feedmapper.v3;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import org.entur.lamassu.mapper.feedidmapper.v3.V3SystemRegionsFeedIdMapper;
 import org.entur.lamassu.mapper.feedmapper.AbstractFeedMapper;
-import org.entur.lamassu.mapper.feedmapper.IdMappers;
 import org.entur.lamassu.model.provider.FeedProvider;
 import org.mobilitydata.gbfs.v3_0.system_regions.GBFSData;
 import org.mobilitydata.gbfs.v3_0.system_regions.GBFSRegion;
@@ -33,8 +33,18 @@ public class V3SystemRegionsFeedMapper extends AbstractFeedMapper<GBFSSystemRegi
 
   private static final String TARGET_GBFS_VERSION = "3.0";
 
+  private final V3SystemRegionsFeedIdMapper idMapper;
+
+  public V3SystemRegionsFeedMapper(V3SystemRegionsFeedIdMapper idMapper) {
+    this.idMapper = idMapper;
+  }
+
   @Override
-  public GBFSSystemRegions map(GBFSSystemRegions source, FeedProvider feedProvider) {
+  public GBFSSystemRegions map(
+    GBFSSystemRegions source,
+    FeedProvider feedProvider,
+    boolean toOriginalId
+  ) {
     if (source == null) {
       return null;
     }
@@ -43,28 +53,25 @@ public class V3SystemRegionsFeedMapper extends AbstractFeedMapper<GBFSSystemRegi
     mapped.setVersion(TARGET_GBFS_VERSION);
     mapped.setTtl(source.getTtl());
     mapped.setLastUpdated(source.getLastUpdated());
-    mapped.setData(mapData(source.getData(), feedProvider.getCodespace()));
+    mapped.setData(mapData(source.getData()));
+
+    idMapper.mapIds(mapped, feedProvider, toOriginalId);
     return mapped;
   }
 
-  private GBFSData mapData(GBFSData data, String codespace) {
+  private GBFSData mapData(GBFSData data) {
     var mapped = new GBFSData();
-    mapped.setRegions(mapRegions(data.getRegions(), codespace));
+    mapped.setRegions(mapRegions(data.getRegions()));
     return mapped;
   }
 
-  private List<GBFSRegion> mapRegions(List<GBFSRegion> regions, String codespace) {
-    return regions
-      .stream()
-      .map(region -> mapRegion(region, codespace))
-      .collect(Collectors.toList());
+  private List<GBFSRegion> mapRegions(List<GBFSRegion> regions) {
+    return regions.stream().map(this::mapRegion).collect(Collectors.toList());
   }
 
-  private GBFSRegion mapRegion(GBFSRegion region, String codespace) {
+  private GBFSRegion mapRegion(GBFSRegion region) {
     var mapped = new GBFSRegion();
-    mapped.setRegionId(
-      IdMappers.mapId(codespace, IdMappers.REGION_ID_TYPE, region.getRegionId())
-    );
+    mapped.setRegionId(region.getRegionId());
     mapped.setName(region.getName());
     return mapped;
   }

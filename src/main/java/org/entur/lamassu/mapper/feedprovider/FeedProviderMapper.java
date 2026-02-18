@@ -1,8 +1,8 @@
 package org.entur.lamassu.mapper.feedprovider;
 
 import java.util.Collections;
-import org.entur.lamassu.ishtar.dto.LamassuAuthDto;
-import org.entur.lamassu.ishtar.dto.LamassuProviderDto;
+import org.entur.lamassu.client.ishtar.dto.LamassuAuthDto;
+import org.entur.lamassu.client.ishtar.dto.LamassuProviderDto;
 import org.entur.lamassu.model.provider.Authentication;
 import org.entur.lamassu.model.provider.AuthenticationScheme;
 import org.entur.lamassu.model.provider.FeedProvider;

@@ -22,6 +22,7 @@ import org.entur.gbfs.loader.v3.GbfsV3Delivery;
 import org.entur.lamassu.mapper.feedmapper.FeedMapper;
 import org.entur.lamassu.model.provider.FeedProvider;
 import org.mobilitydata.gbfs.v3_0.gbfs.GBFSGbfs;
+import org.mobilitydata.gbfs.v3_0.gbfs_versions.GBFSGbfsVersions;
 import org.mobilitydata.gbfs.v3_0.geofencing_zones.GBFSGeofencingZones;
 import org.mobilitydata.gbfs.v3_0.station_information.GBFSStationInformation;
 import org.mobilitydata.gbfs.v3_0.station_status.GBFSStationStatus;
@@ -36,7 +37,6 @@ import org.springframework.stereotype.Component;
 
 /**
  * The purpose of this mapper is to prepare GBFS v3 data for the APIs
- *
  * 1. Transform the discovery file (gbfs.json)
  * 2. Make sure IDs are properly codespaced
  * 3. Inject statically configred content
@@ -85,27 +85,98 @@ public class GbfsV3DeliveryMapper {
     FeedProvider feedProvider
   ) {
     return new GbfsV3Delivery(
-      discoveryFeedMapper.map(delivery.discovery(), feedProvider),
+      discoveryFeedMapper.map(delivery.discovery(), feedProvider, false),
       // Lamassu currently only support producing a single version of GBFS, therefore
       // mapping of the versions file, if it exists, is intentionally skipped.
       // TODO since we now produce v2.x and v3.x we can generate the versions feed
       null,
-      systemInformationFeedMapper.map(delivery.systemInformation(), feedProvider),
-      vehicleTypesFeedMapper.map(delivery.vehicleTypes(), feedProvider),
-      stationInformationFeedMapper.map(delivery.stationInformation(), feedProvider),
+      systemInformationFeedMapper.map(delivery.systemInformation(), feedProvider, false),
+      vehicleTypesFeedMapper.map(delivery.vehicleTypes(), feedProvider, false),
+      stationInformationFeedMapper.map(
+        delivery.stationInformation(),
+        feedProvider,
+        false
+      ),
       stationStatusFeedMapper.map(
         delivery.stationStatus(),
-        feedProvider
+        feedProvider,
+        false
         // TODO Should we continue to support this?
         //stationStatus ->
         //        VehicleTypeCapacityProducer.addToStations(stationStatus, mappedVehicleTypes)
       ),
-      vehicleStatusFeedMapper.map(delivery.vehicleStatus(), feedProvider),
-      systemRegionsFeedMapper.map(delivery.systemRegions(), feedProvider),
-      systemPricingPlansFeedMapper.map(delivery.systemPricingPlans(), feedProvider),
-      systemAlertsFeedMapper.map(delivery.systemAlerts(), feedProvider),
-      geofencingZonesFeedMapper.map(delivery.geofencingZones(), feedProvider),
+      vehicleStatusFeedMapper.map(delivery.vehicleStatus(), feedProvider, false),
+      systemRegionsFeedMapper.map(delivery.systemRegions(), feedProvider, false),
+      systemPricingPlansFeedMapper.map(
+        delivery.systemPricingPlans(),
+        feedProvider,
+        false
+      ),
+      systemAlertsFeedMapper.map(delivery.systemAlerts(), feedProvider, false),
+      geofencingZonesFeedMapper.map(delivery.geofencingZones(), feedProvider, false),
       null
     );
+  }
+
+  public Object mapSingleGbfsFeed(
+    Object gbfsFeed,
+    FeedProvider feedProvider,
+    boolean toOriginalId
+  ) {
+    if (gbfsFeed == null) {
+      return gbfsFeed;
+    }
+    return switch (gbfsFeed) {
+      case GBFSGbfs gbfs -> discoveryFeedMapper.map(gbfs, feedProvider, toOriginalId);
+      case GBFSGbfsVersions version -> version;
+      case GBFSGeofencingZones geofencingZones -> geofencingZonesFeedMapper.map(
+        geofencingZones,
+        feedProvider,
+        toOriginalId
+      );
+      case GBFSStationInformation stationInformation -> stationInformationFeedMapper.map(
+        stationInformation,
+        feedProvider,
+        toOriginalId
+      );
+      case GBFSStationStatus stationStatus -> stationStatusFeedMapper.map(
+        stationStatus,
+        feedProvider,
+        toOriginalId
+      );
+      case GBFSSystemAlerts systemAlerts -> systemAlertsFeedMapper.map(
+        systemAlerts,
+        feedProvider,
+        toOriginalId
+      );
+      case GBFSSystemInformation systemInformation -> systemInformationFeedMapper.map(
+        systemInformation,
+        feedProvider,
+        toOriginalId
+      );
+      case GBFSSystemPricingPlans systemPricingPlans -> systemPricingPlansFeedMapper.map(
+        systemPricingPlans,
+        feedProvider,
+        toOriginalId
+      );
+      case GBFSSystemRegions systemRegions -> systemRegionsFeedMapper.map(
+        systemRegions,
+        feedProvider,
+        toOriginalId
+      );
+      case GBFSVehicleTypes vehicleTypes -> vehicleTypesFeedMapper.map(
+        vehicleTypes,
+        feedProvider,
+        toOriginalId
+      );
+      case GBFSVehicleStatus vehicleStatus -> vehicleStatusFeedMapper.map(
+        vehicleStatus,
+        feedProvider,
+        toOriginalId
+      );
+      default -> throw new IllegalArgumentException(
+        "Unhandled gbfsFeed type: " + gbfsFeed.getClass().getCanonicalName()
+      );
+    };
   }
 }

@@ -1,9 +1,10 @@
-package org.entur.lamassu.ishtar;
+package org.entur.lamassu.client.ishtar;
 
 import java.net.URI;
 import java.time.Duration;
-import java.util.*;
-import org.entur.lamassu.ishtar.dto.LamassuProviderDto;
+import java.util.Collections;
+import java.util.List;
+import org.entur.lamassu.client.ishtar.dto.LamassuProviderDto;
 import org.entur.lamassu.mapper.feedprovider.FeedProviderMapper;
 import org.entur.lamassu.model.provider.FeedProvider;
 import org.entur.lamassu.service.TokenService;

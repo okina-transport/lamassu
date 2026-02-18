@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 import org.entur.lamassu.cache.GBFSV3FeedCache;
 import org.entur.lamassu.config.v3.GlobalFeedConfiguration;
+import org.entur.lamassu.mapper.feedmapper.v3.GbfsV3DeliveryMapper;
 import org.entur.lamassu.service.FeedProviderService;
 import org.mobilitydata.gbfs.v3_0.gbfs.GBFSData;
 import org.mobilitydata.gbfs.v3_0.gbfs.GBFSFeed;
@@ -13,19 +14,25 @@ import org.mobilitydata.gbfs.v3_0.gbfs_versions.GBFSVersion;
 
 public class AggregateGBFSService extends AggregateFeedDataService {
 
-  public AggregateGBFSService(
+  protected AggregateGBFSService(
     FeedProviderService feedProviderService,
     GBFSV3FeedCache gbfsv3FeedCache,
-    GlobalFeedConfiguration globalFeedConfiguration
+    GlobalFeedConfiguration globalFeedConfiguration,
+    GbfsV3DeliveryMapper gbfsV3DeliveryMapper
   ) {
-    super(feedProviderService, gbfsv3FeedCache, globalFeedConfiguration);
+    super(
+      feedProviderService,
+      gbfsv3FeedCache,
+      globalFeedConfiguration,
+      gbfsV3DeliveryMapper
+    );
   }
 
   @Override
-  public Object buildGlobalFeed() {
+  public Object buildGlobalFeed(boolean useOriginalId) {
     List<GBFSFeed> data = new ArrayList<>();
     for (GBFSFeed.Name feed : GBFSFeed.Name.values()) {
-      data.add(new GBFSFeed().withName(feed).withUrl(buildFeedUrl(feed)));
+      data.add(new GBFSFeed().withName(feed).withUrl(buildFeedUrl(feed, useOriginalId)));
     }
     return new GBFSGbfs()
       .withData(new GBFSData().withFeeds(data))
@@ -34,13 +41,16 @@ public class AggregateGBFSService extends AggregateFeedDataService {
       .withLastUpdated(new Date());
   }
 
-  private String buildFeedUrl(GBFSFeed.Name feed) {
-    return (
+  private String buildFeedUrl(GBFSFeed.Name feed, boolean useOriginalId) {
+    String feedUrl =
       globalFeedConfiguration.getHostUrl() +
       "/gbfs/v3/aggregate/" +
       gbfsModality.getValue() +
       "/" +
-      feed
-    );
+      feed;
+    if (useOriginalId) {
+      feedUrl += "?useOriginalId=true";
+    }
+    return feedUrl;
   }
 }

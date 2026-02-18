@@ -37,7 +37,7 @@
         }
       },
       {
-        "vehicle_type_id": "TST:VehicleType:CityBike",
+        "vehicle_type_id": "CityBike",
         "form_factor": "bicycle",
         "make": "Viking",
         "model": "Rider",
