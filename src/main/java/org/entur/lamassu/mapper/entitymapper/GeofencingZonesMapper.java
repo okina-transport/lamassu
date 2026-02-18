@@ -26,11 +26,7 @@ import java.util.Optional;
 import org.entur.lamassu.model.entities.GeofencingZones;
 import org.entur.lamassu.model.entities.MultiPolygon;
 import org.entur.lamassu.model.provider.FeedProvider;
-import org.mobilitydata.gbfs.v3_0.geofencing_zones.GBFSFeature;
-import org.mobilitydata.gbfs.v3_0.geofencing_zones.GBFSGeofencingZones__1;
-import org.mobilitydata.gbfs.v3_0.geofencing_zones.GBFSName;
-import org.mobilitydata.gbfs.v3_0.geofencing_zones.GBFSProperties;
-import org.mobilitydata.gbfs.v3_0.geofencing_zones.GBFSRule;
+import org.mobilitydata.gbfs.v3_0.geofencing_zones.*;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -61,7 +57,7 @@ public class GeofencingZonesMapper {
             .map(ring ->
               ring
                 .stream()
-                .map(coords -> Point.fromLngLat(coords.get(0), coords.get(1)))
+                .map(coords -> Point.fromLngLat(coords.getFirst(), coords.get(1)))
                 .toList()
             )
             .map(ring -> PolylineUtils.encode(ring, 6))
@@ -122,7 +118,9 @@ public class GeofencingZonesMapper {
     mapped.setEnd(
       properties.getEnd() != null ? properties.getEnd().getTime() / 1000 : null
     );
-    mapped.setRules(mapRules(properties.getRules()));
+    mapped.setRules(
+      properties.getRules() != null ? mapRules(properties.getRules()) : null
+    );
     return mapped;
   }
 
