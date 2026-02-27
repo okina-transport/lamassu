@@ -19,12 +19,6 @@
 package org.entur.lamassu.leader;
 
 import jakarta.jms.Message;
-import java.net.URI;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.TimeUnit;
 import org.apache.commons.collections4.CollectionUtils;
 import org.entur.gbfs.GbfsSubscriptionManager;
 import org.entur.gbfs.GbfsSubscriptionOptions;
@@ -54,6 +48,13 @@ import org.springframework.jms.JmsException;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.stereotype.Component;
+
+import java.net.URI;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This class subscribes to all GBFS feeds and dispatches updates to feed cache updaters
@@ -345,7 +346,7 @@ public class FeedUpdater {
               gbfsV3Delivery.stationStatus(),
               session
             );
-            m.setStringProperty("systemId", feedProvider.getSystemId());
+            m.setStringProperty("systemId", feedProvider.getSystemId().toUpperCase());
             return m;
           }
         );
