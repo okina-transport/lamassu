@@ -2,6 +2,7 @@ package org.entur.lamassu.service;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.entur.lamassu.cache.EntityCache;
 import org.entur.lamassu.cache.StationSpatialIndexId;
 import org.entur.lamassu.cache.VehicleSpatialIndexId;
@@ -13,6 +14,7 @@ import org.entur.lamassu.model.provider.FeedProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class SpatialIndexIdGeneratorService {
 
@@ -34,16 +36,7 @@ public class SpatialIndexIdGeneratorService {
       );
     }
 
-    var id = new VehicleSpatialIndexId();
-    id.setId(vehicle.getId());
-    id.setCodespace(provider.getCodespace());
-    id.setSystemId(provider.getSystemId());
-    id.setOperatorId(provider.getOperatorId());
-    id.setFormFactor(vehicleType.getFormFactor());
-    id.setPropulsionType(vehicleType.getPropulsionType());
-    id.setReserved(vehicle.getReserved());
-    id.setDisabled(vehicle.getDisabled());
-    return id;
+    return getVehicleSpatialIndexId(vehicle, provider, vehicleType);
   }
 
   public StationSpatialIndexId createStationIndexId(
@@ -76,6 +69,37 @@ public class SpatialIndexIdGeneratorService {
       id.setAvailablePropulsionTypes(List.of());
     }
 
+    return id;
+  }
+
+  public VehicleSpatialIndexId createVehicleIndexIdForDeletion(
+    Vehicle vehicle,
+    FeedProvider provider
+  ) {
+    VehicleType vehicleType = vehicleTypeCache.get(vehicle.getVehicleTypeId());
+    if (vehicleType == null) {
+      log.error("Vehicle type not found for id: {}", vehicle.getVehicleTypeId());
+    }
+
+    return getVehicleSpatialIndexId(vehicle, provider, vehicleType);
+  }
+
+  private static VehicleSpatialIndexId getVehicleSpatialIndexId(
+    Vehicle vehicle,
+    FeedProvider provider,
+    VehicleType vehicleType
+  ) {
+    var id = new VehicleSpatialIndexId();
+    id.setId(vehicle.getId());
+    id.setCodespace(provider.getCodespace());
+    id.setSystemId(provider.getSystemId());
+    id.setOperatorId(provider.getOperatorId());
+    if (vehicleType != null) {
+      id.setFormFactor(vehicleType.getFormFactor());
+      id.setPropulsionType(vehicleType.getPropulsionType());
+    }
+    id.setReserved(vehicle.getReserved());
+    id.setDisabled(vehicle.getDisabled());
     return id;
   }
 }

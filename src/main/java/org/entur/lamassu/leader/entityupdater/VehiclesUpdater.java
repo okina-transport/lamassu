@@ -127,7 +127,7 @@ public class VehiclesUpdater {
         .collect(Collectors.toSet());
       var spatialIdsToRemove = vehiclesToRemove
         .stream()
-        .map(v -> spatialIndexService.createVehicleIndexId(v, feedProvider))
+        .map(v -> spatialIndexService.createVehicleIndexIdForDeletion(v, feedProvider))
         .collect(Collectors.toSet());
 
       vehicleCache.removeAll(idsToRemove);
