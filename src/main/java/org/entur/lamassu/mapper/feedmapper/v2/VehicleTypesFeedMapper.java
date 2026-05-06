@@ -23,6 +23,8 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.entur.lamassu.mapper.feedidmapper.v2.VehicleTypesFeedIdMapper;
 import org.entur.lamassu.mapper.feedmapper.AbstractFeedMapper;
 import org.entur.lamassu.model.provider.FeedProvider;
@@ -50,7 +52,7 @@ public class VehicleTypesFeedMapper extends AbstractFeedMapper<GBFSVehicleTypes>
     FeedProvider feedProvider,
     boolean toOriginalId
   ) {
-    if (feedProvider.getVehicleTypes() != null) {
+    if (CollectionUtils.isNotEmpty(feedProvider.getVehicleTypes())) {
       return customVehicleTypes(feedProvider, toOriginalId);
     }
 
