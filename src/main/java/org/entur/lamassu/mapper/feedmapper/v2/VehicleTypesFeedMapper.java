@@ -23,7 +23,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.entur.lamassu.mapper.feedidmapper.v2.VehicleTypesFeedIdMapper;
 import org.entur.lamassu.mapper.feedmapper.AbstractFeedMapper;
