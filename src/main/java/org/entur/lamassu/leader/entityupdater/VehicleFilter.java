@@ -64,7 +64,7 @@ public class VehicleFilter implements Predicate<GBFSVehicle> {
         !Boolean.TRUE.equals(station.getVirtualStation()) &&
         !includeVehiclesAssignedToNonVirtualStations
       ) {
-        logger.info(
+        logger.debug(
           "Skipping vehicle {} currently assigned to non-virtual station {}",
           vehicle.getVehicleId(),
           vehicle.getStationId()

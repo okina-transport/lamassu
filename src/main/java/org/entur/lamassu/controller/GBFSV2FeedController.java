@@ -151,7 +151,7 @@ public class GBFSV2FeedController {
 
     LocalDateTime end = LocalDateTime.now();
     double duration = ChronoUnit.MILLIS.between(start, end) * 0.001;
-    logger.info(
+    logger.debug(
       "GBFS stream playback time on a customer call : {}  : {}s",
       feedProvider.getSystemId(),
       duration

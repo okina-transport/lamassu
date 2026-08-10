@@ -326,7 +326,7 @@ public class FeedUpdater {
     v2FeedCachesUpdater.updateFeedCaches(feedProvider, mappedDelivery);
     LocalDateTime end = LocalDateTime.now();
     double duration = ChronoUnit.MILLIS.between(start, end) * 0.001;
-    logger.info(
+    logger.debug(
       "GBFS data recovery time : {} iteration {} : {}s",
       feedProvider.getSystemId(),
       iterationNb,
@@ -364,7 +364,7 @@ public class FeedUpdater {
     }
     LocalDateTime end = LocalDateTime.now();
     double duration = ChronoUnit.MILLIS.between(start, end) * 0.001;
-    logger.info(
+    logger.debug(
       "GBFS data recovery time : {} iteration {} : {}s",
       feedProvider.getSystemId(),
       iterationNb,
