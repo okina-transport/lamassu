@@ -73,4 +73,20 @@ public class MdmClient {
       .toEntity(OkinaIdenfierDto.class)
       .getBody();
   }
+
+  public OkinaIdenfierDto createOrganisation(@NonNull String originalId)
+    throws RestClientException {
+    OkinaIdenfierDto organisation = new OkinaIdenfierDto();
+    // dataset is required by the MDM API but not used for organisations
+    organisation.setDataset(originalId);
+    organisation.setOriginalId(originalId);
+    return client
+      .post()
+      .uri("organisations")
+      .headers(headers -> headers.setBearerAuth(tokenService.getToken()))
+      .body(organisation)
+      .retrieve()
+      .toEntity(OkinaIdenfierDto.class)
+      .getBody();
+  }
 }
