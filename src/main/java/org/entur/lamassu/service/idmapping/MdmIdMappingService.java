@@ -11,6 +11,7 @@ import org.entur.lamassu.model.provider.FeedProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 
 @Service
@@ -77,16 +78,29 @@ public class MdmIdMappingService extends BaseIdMappingService {
   @Override
   public String getSystemIdOriginalToSuper(String id, FeedProvider feedProvider) {
     try {
-      OkinaIdenfierDto organisationId = mdmClient.findSystemIdByOriginalId(id);
+      OkinaIdenfierDto organisationId = findSystemIdByOriginalIdOrCreate(id);
       return String.format(
         "%s:Organisation:%d",
         mdmIdPrefix,
         organisationId.getSuperId()
       );
     } catch (RestClientException e) {
-      log.error("Error retrieving system super ID from MDM", e);
+      log.error("Error retrieving or creating system super ID from MDM", e);
     }
     return super.getSystemIdOriginalToSuper(id, feedProvider);
+  }
+
+  private OkinaIdenfierDto findSystemIdByOriginalIdOrCreate(String id) {
+    try {
+      return mdmClient.findSystemIdByOriginalId(id);
+    } catch (HttpClientErrorException.NotFound e) {
+      log.warn("Organisation with originalId {} not found in MDM, creating it", id);
+      return createOrganisation(id);
+    }
+  }
+
+  private OkinaIdenfierDto createOrganisation(String id) {
+    return mdmClient.createOrganisation(id);
   }
 
   @Override
